@@ -1,0 +1,57 @@
+{
+  "entities": {
+    "MonthData": {
+      "title": "MonthData",
+      "description": "Financial data for a specific user and month",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "The UID of the user who owns this data"
+        },
+        "groupId": {
+          "type": "string",
+          "description": "The ID of the group (UID or 'shared_household')"
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the month (e.g. Janeiro 2025)"
+        },
+        "data": {
+          "type": "string",
+          "description": "The stringified JSON payload of the OrcamentoData"
+        },
+        "updatedAt": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "userId",
+        "name",
+        "data"
+      ]
+    },
+    "AllowedUsersConfig": {
+      "title": "AllowedUsersConfig",
+      "description": "Whitelist of user emails allowed to access the application",
+      "type": "object",
+      "properties": {
+        "emails": {
+          "type": "array",
+          "description": "List of emails with access"
+        }
+      },
+      "required": ["emails"]
+    }
+  },
+  "firestore": {
+    "months/{monthId}": {
+      "schema": "MonthData",
+      "description": "Stores users' monthly financial data"
+    },
+    "config/allowed_users": {
+      "schema": "AllowedUsersConfig",
+      "description": "Global whitelist for application access"
+    }
+  }
+}

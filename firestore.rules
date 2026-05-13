@@ -1,0 +1,43 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if false;
+    }
+    
+    function isSignedIn() { return request.auth != null; }
+    function isAllowedUser() {
+      let path = /databases/$(database)/documents/config/allowed_users;
+      return request.auth != null && 
+             exists(path) &&
+             (
+               ('emails' in get(path).data && request.auth.token.email in get(path).data.emails) ||
+               ('users' in get(path).data && request.auth.token.email in get(path).data.users)
+             );
+    }
+    
+    function isValidId(id) { return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); }
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+    
+    function isValidMonthData(data) {
+      return data.keys().hasAll(['userId', 'groupId', 'name', 'updatedAt']) &&
+             data.userId is string &&
+             data.groupId is string &&
+             data.name is string && data.name.size() <= 100 &&
+             data.updatedAt is number;
+    }
+
+    match /config/allowed_users {
+      allow read: if request.auth != null;
+    }
+
+    match /months/{monthId} {
+      allow read: if isSignedIn() && (resource.data.groupId == request.auth.uid || (resource.data.groupId == 'shared_household' && isAllowedUser()));
+      allow list: if isSignedIn() && (resource.data.groupId == request.auth.uid || (resource.data.groupId == 'shared_household' && isAllowedUser()));
+      allow create: if isSignedIn() && isValidId(monthId) && isValidMonthData(incoming()) && incoming().updatedAt <= request.time.toMillis();
+      allow update: if isSignedIn() && isValidId(monthId) && isValidMonthData(incoming()) && (existing().groupId == request.auth.uid || (existing().groupId == 'shared_household' && isAllowedUser()));
+      allow delete: if isSignedIn() && (existing().groupId == request.auth.uid || (existing().groupId == 'shared_household' && isAllowedUser()));
+    }
+  }
+}
