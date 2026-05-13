@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Item, OrcamentoData } from '../types';
-import { fmt, unfmt, maskMoney, formatFullDate, MONTH_MAP } from '../utils';
+import { fmt, unfmt, maskMoney, formatFullDate, MONTH_MAP, round2 } from '../utils';
 import { provisaoMetaData } from '../constants';
 import { PlusCircle, Pin, Shuffle, CircleCheck, Circle, Trash2, Wallet, Plus, Calendar, ChevronDown, ChevronUp, Tag, Check, X, ArrowUpCircle, ArrowDownCircle, CheckCircle2, TrendingUp } from 'lucide-react';
 import { CurrencyInput } from './CurrencyInput';
@@ -47,23 +47,23 @@ export function TabDetalhes({ data, setData, saveData, monthName = '', onAdd }: 
 
     // Entradas (Only new income this month)
     const novasReceitasList = data.receitas.filter(i => i.id !== 1 && i.id !== '1');
-    const totalReceitasNovasReal = novasReceitasList.reduce((acc, curr) => acc + curr.v, 0); 
+    const totalReceitasNovasReal = round2(novasReceitasList.reduce((acc, curr) => acc + curr.v, 0)); 
     const totalReceitasNovasPrev = totalReceitasNovasReal; // No longer distinct prediction for new income
 
     // Resgates from reserves
-    const resgatesReservaTotal = Object.keys(data.provisoes).reduce((acc, key) => {
+    const resgatesReservaTotal = round2(Object.keys(data.provisoes).reduce((acc, key) => {
         const prov = data.provisoes[key];
         return acc + (prov.gastos || []).reduce((s, g) => s + g.v, 0);
-    }, 0);
+    }, 0));
 
-    const totalMercadoReal = data.mercado.gastosReais.reduce((a, b) => a + (b || 0), 0);
+    const totalMercadoReal = round2(data.mercado.gastosReais.reduce((a, b) => a + (b || 0), 0));
 
     // Reservas (Aportes)
     const itemsReservaPagos = [
         ...data.fixas.filter(i => i.paid && provisaoMetaData.some(pm => pm.entradaId === i.id)),
         ...data.variaveis.filter(i => i.paid && (provisaoMetaData.some(pm => pm.entradaId === i.id) || [9, 12, 32, 33, 34].includes(i.id as number)))
     ];
-    const totalReservasReal = itemsReservaPagos.reduce((acc, curr) => acc + curr.v, 0) + manualReserves.reduce((acc, curr) => acc + curr.v, 0);
+    const totalReservasReal = round2(itemsReservaPagos.reduce((acc, curr) => acc + curr.v, 0) + manualReserves.reduce((acc, curr) => acc + curr.v, 0));
 
     // Saídas (Puras - common expenses)
     // Filter out market-related historico items if we are going to add totalMercadoReal separately to avoid double counting
@@ -77,21 +77,21 @@ export function TabDetalhes({ data, setData, saveData, monthName = '', onAdd }: 
     ];
     
     // We add totalMercadoReal to the "Real" total
-    const totalSaidasPurasReal = baseSaidasPuras.filter(i => i.paid).reduce((acc, curr) => acc + curr.v, 0) + totalMercadoReal;
+    const totalSaidasPurasReal = round2(baseSaidasPuras.filter(i => i.paid).reduce((acc, curr) => acc + curr.v, 0) + totalMercadoReal);
     
     // For Previsto (Budget), we include the planned market budget (id 19)
-    const mercadoBudget = data.gastosMes.find(i => i.id === 19)?.v || (data.mercado.metaSemanal * data.mercado.gastosReais.length);
-    const totalSaidasPurasPrev = baseSaidasPuras.reduce((acc, curr) => acc + curr.v, 0) + mercadoBudget;
+    const mercadoBudget = round2(data.gastosMes.find(i => i.id === 19)?.v || (data.mercado.metaSemanal * data.mercado.gastosReais.length));
+    const totalSaidasPurasPrev = round2(baseSaidasPuras.reduce((acc, curr) => acc + curr.v, 0) + mercadoBudget);
     
     const itemsReservaAll = [
         ...data.fixas.filter(i => provisaoMetaData.some(pm => pm.entradaId === i.id)),
         ...data.variaveis.filter(i => provisaoMetaData.some(pm => pm.entradaId === i.id) || [9, 12, 32, 33, 34].includes(i.id as number))
     ];
-    const totalReservasPrev = itemsReservaAll.reduce((acc, curr) => acc + curr.v, 0) + manualReserves.reduce((acc, curr) => acc + curr.v, 0);
+    const totalReservasPrev = round2(itemsReservaAll.reduce((acc, curr) => acc + curr.v, 0) + manualReserves.reduce((acc, curr) => acc + curr.v, 0));
     
     // Saldo Atual = (Saldo Anterior + Novas Entradas + Resgates) - Saidas - Reservas
-    const saldoLiquido = (saldoAnterior + totalReceitasNovasReal + resgatesReservaTotal) - totalSaidasPurasReal - totalReservasReal;
-    const saldoPrevisto = (saldoAnterior + totalReceitasNovasPrev) - totalSaidasPurasPrev - totalReservasPrev;
+    const saldoLiquido = round2((saldoAnterior + totalReceitasNovasReal + resgatesReservaTotal) - totalSaidasPurasReal - totalReservasReal);
+    const saldoPrevisto = round2((saldoAnterior + totalReceitasNovasPrev) - totalSaidasPurasPrev - totalReservasPrev);
 
     const handleAdd = (type: 'receitas' | 'fixas' | 'variaveis' | 'gastosMes' | 'dividas') => {
         const nome = window.prompt(`Nome do item:`);
@@ -296,18 +296,18 @@ export function TabDetalhes({ data, setData, saveData, monthName = '', onAdd }: 
             return a.id.toString().localeCompare(b.id.toString());
         });
 
-        const totalMercadoReal = data.mercado.gastosReais.reduce((acc, curr) => acc + (curr || 0), 0);
-        const totalBase = displayList.reduce((acc, curr) => {
+        const totalMercadoReal = round2(data.mercado.gastosReais.reduce((acc, curr) => acc + (curr || 0), 0));
+        const totalBase = round2(displayList.reduce((acc, curr) => {
             if (curr.id === 19) return acc + totalMercadoReal;
             return acc + curr.v;
-        }, 0);
+        }, 0));
         
         // "Saldo 2x" fix: The total in the header/footer of Receipts should probably reflect ONLY new revenue
         // if it's the recettes section and has saldo anterior.
         const isReceitas = type === 'receitas';
-        const finalTotalDisplay = isReceitas 
+        const finalTotalDisplay = round2(isReceitas 
             ? displayList.filter(i => i.id !== 1 && i.id !== '1').reduce((acc, curr) => acc + curr.v, 0)
-            : totalBase;
+            : totalBase);
         
         const isOpen = openSections[type];
         

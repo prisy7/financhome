@@ -20,7 +20,21 @@ export function LancamentoModal({ isOpen, onClose, onSave, mercado, initialType 
     const [vencimento, setVencimento] = useState<string>(new Date().getDate().toString());
     const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
 
-    const categorias = [
+    const [customCategories, setCustomCategories] = useState<any[]>([]);
+    const [hiddenCategories, setHiddenCategories] = useState<string[]>([]);
+    const [deleteMode, setDeleteMode] = useState(false);
+
+    useEffect(() => {
+        try {
+            const savedCustom = localStorage.getItem('financask_custom_categories');
+            if (savedCustom) setCustomCategories(JSON.parse(savedCustom));
+            
+            const savedHidden = localStorage.getItem('financask_hidden_categories');
+            if (savedHidden) setHiddenCategories(JSON.parse(savedHidden));
+        } catch(e) {}
+    }, []);
+
+    const baseCategorias = [
         { id: 'personalizado', label: 'Criar Categoria', color: 'text-indigo-700 bg-indigo-50 border-indigo-200' },
         { id: 'receita_principal', label: 'Receita Principal', color: 'text-emerald-700 bg-emerald-100 border-emerald-500' },
         { id: 'receita_extras', label: 'Extras', color: 'text-blue-700 bg-blue-100 border-blue-500' },
@@ -58,6 +72,8 @@ export function LancamentoModal({ isOpen, onClose, onSave, mercado, initialType 
         { id: 'festa', label: 'Festa / Aniversário', color: 'text-pink-800 bg-pink-100 border-pink-400' },
         { id: 'outros', label: 'Outros', color: 'text-slate-700 bg-slate-100 border-slate-500' }
     ];
+
+    const categorias = [...baseCategorias, ...customCategories].filter(c => !hiddenCategories.includes(c.id));
 
     const [selectedCat, setSelectedCat] = useState<string | null>(null);
     const [customCat, setCustomCat] = useState('');
@@ -122,6 +138,19 @@ export function LancamentoModal({ isOpen, onClose, onSave, mercado, initialType 
         const catObj = categorias.find(c => c.id === selectedCat);
         const catLabel = selectedCat === 'personalizado' ? customCat.trim() : (catObj?.label || 'Lançamento');
         const finalDesc = descTrimmed || catLabel;
+
+        if (selectedCat === 'personalizado') {
+            const newCatId = 'custom_' + Date.now();
+            const newCat = {
+                id: newCatId,
+                label: customCat.trim(),
+                color: initialType === 'receitas' ? 'text-emerald-700 bg-emerald-100 border-emerald-500' : 'text-slate-700 bg-slate-100 border-slate-500',
+                isCustom: true
+            };
+            const updatedCustom = [...customCategories, newCat];
+            setCustomCategories(updatedCustom);
+            localStorage.setItem('financask_custom_categories', JSON.stringify(updatedCustom));
+        }
         
         onSave({ 
             tipo: sysTipo, 
@@ -190,35 +219,68 @@ export function LancamentoModal({ isOpen, onClose, onSave, mercado, initialType 
                     <div>
                         <div className="flex items-center justify-between mb-2">
                             <label className="block text-xs font-bold text-slate-500 uppercase">Categoria</label>
-                            <button 
-                                onClick={() => {
-                                    setSelectedCat('personalizado');
-                                    setShowCustomInput(true);
-                                }}
-                                className="text-indigo-600 flex items-center gap-1 text-[10px] font-black uppercase hover:underline p-1"
-                                type="button"
-                            >
-                                <Plus size={12} strokeWidth={3} /> Nova Categoria
-                            </button>
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={() => setDeleteMode(!deleteMode)}
+                                    className={`text-[10px] font-black uppercase p-1 px-2 rounded transition-all ${deleteMode ? 'bg-rose-100 text-rose-600' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'}`}
+                                    type="button"
+                                >
+                                    {deleteMode ? 'Concluído' : 'Excluir Categoria'}
+                                </button>
+                                <button 
+                                    onClick={() => {
+                                        setSelectedCat('personalizado');
+                                        setShowCustomInput(true);
+                                        setDeleteMode(false);
+                                    }}
+                                    className="text-indigo-600 flex items-center gap-1 text-[10px] font-black uppercase hover:underline p-1"
+                                    type="button"
+                                >
+                                    <Plus size={12} strokeWidth={3} /> Nova Categoria
+                                </button>
+                            </div>
                         </div>
                         <div className="flex flex-wrap gap-2 max-h-48 overflow-y-auto p-1 hide-scrollbar">
                             {filteredCategorias.map(cat => (
                                 <button
                                     key={cat.id}
-                                    onClick={() => {
-                                        setSelectedCat(cat.id);
-                                        setShowCustomInput(cat.id === 'personalizado');
+                                    onClick={(e) => {
+                                        if (deleteMode && cat.id !== 'personalizado' && cat.id !== 'mercado' && cat.id !== 'receita_principal') {
+                                            e.preventDefault();
+                                            if (window.confirm(`Deseja ocultar/excluir a categoria "${cat.label}"?`)) {
+                                                if (cat.isCustom) {
+                                                    const newCustom = customCategories.filter(c => c.id !== cat.id);
+                                                    setCustomCategories(newCustom);
+                                                    localStorage.setItem('financask_custom_categories', JSON.stringify(newCustom));
+                                                } else {
+                                                    const newHidden = [...hiddenCategories, cat.id];
+                                                    setHiddenCategories(newHidden);
+                                                    localStorage.setItem('financask_hidden_categories', JSON.stringify(newHidden));
+                                                }
+                                                if(selectedCat === cat.id) setSelectedCat(null);
+                                            }
+                                            return;
+                                        }
+                                        if (!deleteMode) {
+                                            setSelectedCat(cat.id);
+                                            setShowCustomInput(cat.id === 'personalizado');
+                                        }
                                     }}
-                                    className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all border ${
+                                    className={`relative px-3 py-1.5 rounded-full text-xs font-bold transition-all border ${
                                         selectedCat === cat.id 
                                             ? `${cat.color} ring-2 ring-offset-1 ring-current` 
                                             : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
-                                    }`}
+                                    } ${deleteMode && cat.id !== 'personalizado' && cat.id !== 'mercado' && cat.id !== 'receita_principal' ? 'animate-pulse border-rose-300 bg-rose-50' : ''}`}
                                     type="button"
                                 >
                                     <span className="flex items-center gap-1">
                                         {cat.id === 'personalizado' && <Plus size={12} />}
                                         {cat.label}
+                                        {deleteMode && cat.id !== 'personalizado' && cat.id !== 'mercado' && cat.id !== 'receita_principal' && (
+                                            <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-rose-500 text-white rounded-full flex items-center justify-center shadow-sm">
+                                                <X size={10} strokeWidth={3} />
+                                            </span>
+                                        )}
                                     </span>
                                 </button>
                             ))}

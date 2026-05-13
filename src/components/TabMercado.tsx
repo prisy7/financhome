@@ -1,7 +1,7 @@
 import React from 'react';
 import { Tag, ShoppingCart, Trash2, Plus } from 'lucide-react';
 import { OrcamentoData } from '../types';
-import { fmt, unfmt, maskMoney } from '../utils';
+import { fmt, unfmt, maskMoney, round2 } from '../utils';
 import { CurrencyInput } from './CurrencyInput';
 
 interface TabMercadoProps {
@@ -15,10 +15,10 @@ export function TabMercado({ data, setData, saveData, onAdd }: TabMercadoProps) 
     if (!data) return null;
 
     const { metaSemanal, gastosReais, overflowAnterior, totalEstouradoMesAnterior } = data.mercado;
-    const totalPrevisto = metaSemanal * gastosReais.length;
-    const totalReal = gastosReais.reduce((a, b) => a + b, 0);
-    const totalExtraAcumulado = (overflowAnterior || 0) + (totalReal - totalPrevisto);
-    const saldo = (metaSemanal * gastosReais.length) - totalReal - (overflowAnterior || 0);
+    const totalPrevisto = round2(metaSemanal * gastosReais.length);
+    const totalReal = round2(gastosReais.reduce((a, b) => a + b, 0));
+    const totalExtraAcumulado = round2((overflowAnterior || 0) + (totalReal - totalPrevisto));
+    const saldo = round2((metaSemanal * gastosReais.length) - totalReal - (overflowAnterior || 0));
 
     const ranges = ["Dia 01 a 07", "Dia 08 a 14", "Dia 15 a 21", "Dia 22 a 28", "Dia 29 a 31"];
 
@@ -28,12 +28,12 @@ export function TabMercado({ data, setData, saveData, onAdd }: TabMercadoProps) 
     
     for (let i = 0; i < gastosReais.length; i++) {
         const remainingWeeks = gastosReais.length - i;
-        const reduction = runningExcess / remainingWeeks;
-        const currentMeta = metaSemanal - reduction;
+        const reduction = round2(runningExcess / remainingWeeks);
+        const currentMeta = round2(metaSemanal - reduction);
         dynamicMetas.push(currentMeta);
         
         // Atualiza o excesso para a próxima iteração
-        runningExcess += (gastosReais[i] - metaSemanal);
+        runningExcess = round2(runningExcess + (gastosReais[i] - metaSemanal));
     }
 
     React.useEffect(() => {
@@ -209,32 +209,52 @@ export function TabMercado({ data, setData, saveData, onAdd }: TabMercadoProps) 
                             </div>
                         ) : (
                             data.gastosMesHistorico?.filter(i => (i as any).isMercado)
-                                .sort((a, b) => ((b as any).timestamp || 0) - ((a as any).timestamp || 0))
+                                .sort((a, b) => {
+                                    const dayA = Number(a.vencimento || 0);
+                                    const dayB = Number(b.vencimento || 0);
+                                    if (dayA !== dayB) return dayA - dayB;
+                                    return ((a as any).timestamp || 0) - ((b as any).timestamp || 0);
+                                })
                                 .map((item, idx) => (
-                                    <div key={item.id} className="px-3 py-2 md:px-4 md:py-2.5 flex items-center justify-between hover:bg-slate-50/50 transition-colors group">
-                                        <div className="flex items-center gap-3 min-w-0">
-                                            <div className="w-8 h-8 rounded bg-slate-50 text-slate-400 flex items-center justify-center shrink-0 border border-slate-100/50">
-                                                <span className="text-[11px] leading-none">{item.vencimento || '--'}</span>
+                                    <div key={item.id} className="px-3 py-2 md:px-4 md:py-2.5 flex items-start md:items-center justify-between hover:bg-slate-50/50 transition-colors group gap-4">
+                                        <div className="flex items-start md:items-center gap-3 min-w-0 flex-1">
+                                            <div className="w-8 h-8 rounded bg-slate-50 text-slate-400 flex items-center justify-center shrink-0 border border-slate-100/50 mt-0.5 md:mt-0">
+                                                <span className="text-[11px] leading-none font-black">{item.vencimento || '--'}</span>
                                             </div>
-                                            <div className="min-w-0">
-                                                <p className="text-[12.5px] md:text-[13.5px] text-slate-700 uppercase tracking-tight leading-tight mb-1">{item.d}</p>
-                                                <span className="px-1.5 py-0.5 rounded-[3px] bg-indigo-50 text-indigo-500 text-[10px] md:text-[11px] uppercase tracking-widest">
+                                            <div className="min-w-0 flex flex-col items-start gap-1.5 flex-1">
+                                                {(() => {
+                                                    const match = item.d.match(/^\[(.*?)\]\s*(.*)$/);
+                                                    if (match) {
+                                                        const category = match[1];
+                                                        const desc = match[2];
+                                                        return (
+                                                            <>
+                                                                <span className="inline-block px-1.5 py-0.5 rounded bg-blue-50 text-blue-600 text-[9px] md:text-[10px] font-black uppercase tracking-widest break-words whitespace-normal max-w-full leading-tight">
+                                                                    {category}
+                                                                </span>
+                                                                <p className="text-[12.5px] md:text-[13.5px] font-bold text-slate-700 uppercase tracking-tight leading-tight whitespace-normal break-words">{desc}</p>
+                                                            </>
+                                                        );
+                                                    }
+                                                    return <p className="text-[12.5px] md:text-[13.5px] font-bold text-slate-700 uppercase tracking-tight leading-tight whitespace-normal break-words">{item.d}</p>;
+                                                })()}
+                                                <span className="px-1.5 py-0.5 rounded-[3px] bg-indigo-50 text-indigo-500 text-[9px] font-black uppercase tracking-widest leading-none">
                                                     {(item as any).semana ? `S${(item as any).semana}` : 'Merc'}
                                                 </span>
                                             </div>
                                         </div>
-                                        <div className="flex items-center gap-3">
-                                            <p className="text-[12.5px] md:text-[13.5px] text-slate-800 tracking-tight">{fmt(item.v)}</p>
+                                        <div className="flex flex-col md:flex-row items-end md:items-center gap-2 md:gap-3 shrink-0">
+                                            <p className="text-[12.5px] md:text-[13.5px] font-black text-slate-800 tracking-tight">{fmt(item.v)}</p>
                                             <button 
                                                 onClick={() => {
-                                                    if (window.confirm(`Deseja realmente excluir "${item.d}"?`)) {
-                                                        const newData = { ...data };
-                                                        newData.gastosMesHistorico = (newData.gastosMesHistorico || []).filter(i => i.id !== item.id);
-                                                        const sem = (item as any).semana;
-                                                        if (sem && newData.mercado.gastosReais[sem - 1] !== undefined) {
-                                                            newData.mercado.gastosReais[sem - 1] = Math.max(0, newData.mercado.gastosReais[sem - 1] - item.v);
-                                                        }
-                                                        setData(newData);
+                                                        if (window.confirm(`Deseja realmente excluir "${item.d}"?`)) {
+                                                            const newData = { ...data };
+                                                            newData.gastosMesHistorico = (newData.gastosMesHistorico || []).filter(i => i.id !== item.id);
+                                                            const sem = (item as any).semana;
+                                                            if (sem && newData.mercado.gastosReais[sem - 1] !== undefined) {
+                                                                newData.mercado.gastosReais[sem - 1] = round2(Math.max(0, newData.mercado.gastosReais[sem - 1] - item.v));
+                                                            }
+                                                            setData(newData);
                                                         saveData(newData);
                                                     }
                                                 }}

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { OrcamentoData } from '../types';
-import { fmt, formatFullDate, showToast } from '../utils';
+import { fmt, formatFullDate, showToast, round2 } from '../utils';
 import { provisaoMetaData } from '../constants';
 import { CheckCircle2, Circle, ArrowDownCircle, ArrowUpCircle, TrendingUp, PieChart as PieChartIcon, Wallet, Trash2, Edit2 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie } from 'recharts';
@@ -22,14 +22,14 @@ export function TabExtrato({ data, setData, saveData, monthName }: TabExtratoPro
 
     // DATA FOR DASHBOARD
     const saldoAnterior = data.receitas.find(i => i.id === 1 || i.id === '1')?.v || 0;
-    const totalReceitasNovasReal = data.receitas.filter(i => i.paid && i.id !== 1 && i.id !== '1').reduce((acc, curr) => acc + curr.v, 0);
-    const previstoReceitasNovas = data.receitas.filter(i => i.id !== 1 && i.id !== '1').reduce((acc, curr) => acc + curr.v, 0);
+    const totalReceitasNovasReal = round2(data.receitas.filter(i => i.paid && i.id !== 1 && i.id !== '1').reduce((acc, curr) => acc + curr.v, 0));
+    const previstoReceitasNovas = round2(data.receitas.filter(i => i.id !== 1 && i.id !== '1').reduce((acc, curr) => acc + curr.v, 0));
     
     // Total Resgates (Usage of reserves) - counts as money coming INTO the "current" wallet
-    const resgatesReservaTotal = Object.keys(data.provisoes).reduce((acc, key) => {
+    const resgatesReservaTotal = round2(Object.keys(data.provisoes).reduce((acc, key) => {
         const prov = data.provisoes[key];
         return acc + (prov.gastos || []).reduce((s, g) => s + g.v, 0);
-    }, 0);
+    }, 0));
 
     // Calculate manual contributions for reserves (those not linked to an item)
     const manualReservesList = Object.keys(data.provisoes).map(key => {
@@ -50,36 +50,36 @@ export function TabExtrato({ data, setData, saveData, monthName }: TabExtratoPro
         return null;
     }).filter(i => i !== null);
 
-    const totalAportesManual = manualReservesList.reduce((acc, curr) => acc + curr.v, 0);
+    const totalAportesManual = round2(manualReservesList.reduce((acc, curr) => acc + curr.v, 0));
 
     // All paid items that are considered Reserve Deposits (Aportes)
     const itemsReservaPagos = [
         ...data.fixas.filter(i => i.paid && provisaoMetaData.some(pm => pm.entradaId === i.id)),
         ...data.variaveis.filter(i => i.paid && (provisaoMetaData.some(pm => pm.entradaId === i.id) || [9, 12, 32, 33, 34].includes(i.id as number)))
     ];
-    const totalAportesReal = itemsReservaPagos.reduce((acc, curr) => acc + (curr.v || 0), 0) + totalAportesManual;
-    const aportesPrevistos = [
+    const totalAportesReal = round2(itemsReservaPagos.reduce((acc, curr) => acc + (curr.v || 0), 0) + totalAportesManual);
+    const aportesPrevistos = round2([
         ...data.fixas.filter(i => provisaoMetaData.some(pm => pm.entradaId === i.id)),
         ...data.variaveis.filter(i => provisaoMetaData.some(pm => pm.entradaId === i.id) || [9, 12, 32, 33, 34].includes(i.id as number))
-    ].reduce((acc, curr) => acc + curr.v, 0);
+    ].reduce((acc, curr) => acc + curr.v, 0));
 
     // Total actual expenses (outflows) that are NOT reserve deposits
-    const totalSaidasPuras = [
+    const totalSaidasPuras = round2([
         ...data.fixas.filter(i => i.paid && !provisaoMetaData.some(pm => pm.entradaId === i.id)),
         ...data.variaveis.filter(i => i.paid && !provisaoMetaData.some(pm => pm.entradaId === i.id) && ![9, 12, 32, 33, 34].includes(i.id as number)),
         ...(data.gastosMes || []).filter(i => i.paid),
         ...(data.gastosMesHistorico || []).filter(i => i.paid),
         ...(data.dividas || []).filter(i => i.paid)
-    ].reduce((acc, curr) => acc + (curr.v || 0), 0);
+    ].reduce((acc, curr) => acc + (curr.v || 0), 0));
 
-    const fixPuro = data.fixas.filter(i => !provisaoMetaData.some(pm => pm.entradaId === i.id)).reduce((a,b) => a+b.v, 0);
-    const varPuro = data.variaveis.filter(i => !provisaoMetaData.some(pm => pm.entradaId === i.id) && ![9, 12, 32, 33, 34].includes(i.id as number)).reduce((a,b) => a+b.v, 0);
-    const div = data.dividas?.reduce((a, b) => a + b.v, 0) || 0; 
-    const gastosMesTotal = data.gastosMes?.reduce((a, b) => a + b.v, 0) || 0;
-    const despesasPrevistas = fixPuro + varPuro + div + gastosMesTotal;
+    const fixPuro = round2(data.fixas.filter(i => !provisaoMetaData.some(pm => pm.entradaId === i.id)).reduce((a,b) => a+b.v, 0));
+    const varPuro = round2(data.variaveis.filter(i => !provisaoMetaData.some(pm => pm.entradaId === i.id) && ![9, 12, 32, 33, 34].includes(i.id as number)).reduce((a,b) => a+b.v, 0));
+    const div = round2(data.dividas?.reduce((a, b) => a + b.v, 0) || 0); 
+    const gastosMesTotal = round2(data.gastosMes?.reduce((a, b) => a + b.v, 0) || 0);
+    const despesasPrevistas = round2(fixPuro + varPuro + div + gastosMesTotal);
 
-    const saldoLiquido = (saldoAnterior + totalReceitasNovasReal + resgatesReservaTotal) - totalSaidasPuras - totalAportesReal;
-    const saldoPrevisto = (saldoAnterior + previstoReceitasNovas) - despesasPrevistas - aportesPrevistos;
+    const saldoLiquido = round2((saldoAnterior + totalReceitasNovasReal + resgatesReservaTotal) - totalSaidasPuras - totalAportesReal);
+    const saldoPrevisto = round2((saldoAnterior + previstoReceitasNovas) - despesasPrevistas - aportesPrevistos);
 
     const chartData = [
         { name: 'Entradas', valor: totalReceitasNovasReal + resgatesReservaTotal, color: '#10b981' },
@@ -405,10 +405,9 @@ export function TabExtrato({ data, setData, saveData, monthName }: TabExtratoPro
                         )}
 
                         {/* TABLE HEADERS */}
-                        <div className="hidden md:grid grid-cols-[40px_90px_100px_120px_1fr_100px_40px] gap-x-4 px-6 md:px-6 py-4 bg-slate-100/60 border-b border-slate-200 text-[12px] font-black text-slate-500 uppercase tracking-[0.2em] items-center">
+                        <div className="hidden md:grid grid-cols-[40px_80px_200px_1fr_100px_40px] gap-x-4 px-6 md:px-6 py-4 bg-slate-100/60 border-b border-slate-200 text-[12px] font-black text-slate-500 uppercase tracking-[0.2em] items-center">
                             <div className="flex items-center justify-center opacity-40"><CheckCircle2 size={10} /></div>
                             <div>Data</div>
-                            <div>Badge</div>
                             <div>Categoria</div>
                             <div>Descrição</div>
                             <div className="text-right">Valor</div>
@@ -439,7 +438,7 @@ export function TabExtrato({ data, setData, saveData, monthName }: TabExtratoPro
                                     return (
                                         <div 
                                             key={`${item.tipo}-${item.id}`} 
-                                            className={`md:grid md:grid-cols-[40px_90px_100px_120px_1fr_100px_40px] p-4 md:p-4 md:px-6 flex flex-col md:flex-none md:items-center hover:bg-slate-50 transition-all group gap-x-4 border-b border-slate-100 ${!item.paid ? 'bg-slate-50/50' : ''}`}
+                                            className={`md:grid md:grid-cols-[40px_80px_200px_1fr_100px_40px] p-4 md:p-4 md:px-6 flex flex-col md:flex-none md:items-center hover:bg-slate-50 transition-all group gap-x-4 border-b border-slate-100 ${!item.paid ? 'bg-slate-50/50' : ''}`}
                                         >
 
                                         {/* CHECKBOX */}
@@ -460,20 +459,17 @@ export function TabExtrato({ data, setData, saveData, monthName }: TabExtratoPro
                                             </span>
                                         </div>
 
-                                        {/* BADGE */}
-                                        <div className="mb-2 md:mb-0">
-                                            <span className="md:hidden text-[11px] font-black text-slate-500 uppercase mr-2.5 text-xs">Tipo:</span>
-                                            <span className={`inline-block py-1 px-3 rounded-full leading-none text-[10px] font-black uppercase tracking-[0.1em] border ${item.paid ? 'border-transparent opacity-80' : 'border-slate-300'} ${item.color}`}>
-                                                {item.badge}
-                                            </span>
-                                        </div>
-
                                         {/* CATEGORIA */}
-                                        <div className="mb-2 md:mb-0 flex items-center group">
+                                        <div className="mb-2 md:mb-0 flex items-center flex-wrap gap-2 group min-w-0">
                                             <span className="md:hidden text-[11px] font-black text-slate-500 uppercase mr-2.5 text-xs">Categoria:</span>
-                                            <span className="inline-block px-2 py-1 text-[10px] font-black uppercase tracking-widest rounded leading-none text-white mr-2" style={{ backgroundColor: catColor }}>
+                                            <span className="inline-block max-w-[150px] whitespace-normal break-words px-2 py-1 text-[10px] font-black uppercase tracking-widest rounded leading-tight text-white text-center" style={{ backgroundColor: catColor }}>
                                                 {category}
                                             </span>
+                                            {item.badge === 'Mercado' && (
+                                                <span className={`inline-block whitespace-normal text-center max-w-[90px] break-words py-1 px-2 rounded-full leading-tight text-[9px] font-black uppercase tracking-[0.1em] border border-transparent bg-purple-50 text-purple-400`}>
+                                                    Mercado
+                                                </span>
+                                            )}
                                             <button 
                                                 onClick={() => {
                                                     const newCat = prompt(`Nova categoria para "${description}":`, category);
@@ -513,7 +509,7 @@ export function TabExtrato({ data, setData, saveData, monthName }: TabExtratoPro
                                         {/* DESCRIÇÃO */}
                                         <div className="mb-3 md:mb-0 min-w-0">
                                             <span className="md:hidden text-[11px] font-black text-slate-500 uppercase mr-2.5 text-xs">Descrição:</span>
-                                            <p className={`text-[12.5px] md:text-[13.5px] tracking-tight ${item.paid ? 'text-slate-500' : 'text-slate-700'}`}>
+                                            <p className={`break-words text-[12.5px] md:text-[13.5px] tracking-tight ${item.paid ? 'text-slate-500' : 'text-slate-700'}`}>
                                                 {description}
                                                 {!item.paid && item.tipo !== 'receitas' && <span className="ml-2 px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 text-[8px] uppercase font-black align-middle">Pendente</span>}
                                             </p>

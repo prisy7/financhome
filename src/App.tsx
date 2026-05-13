@@ -5,7 +5,7 @@ import {
 import { motion, AnimatePresence } from 'motion/react';
 import { defaultData, STORAGE_KEY_MONTHS } from './constants';
 import { OrcamentoData, MonthInfo } from './types';
-import { showToast, fmt } from './utils';
+import { showToast, fmt, round2 } from './utils';
 import { TabsContainer } from './components/TabsContainer';
 import { TabDetalhes } from './components/TabDetalhes';
 import { TabCalendario } from './components/TabCalendario';
@@ -227,7 +227,7 @@ export default function App() {
               while (newData.mercado.gastosReais.length < lancamento.semana) {
                   newData.mercado.gastosReais.push(0);
               }
-              newData.mercado.gastosReais[lancamento.semana - 1] += lancamento.valor;
+              newData.mercado.gastosReais[lancamento.semana - 1] = round2(newData.mercado.gastosReais[lancamento.semana - 1] + lancamento.valor);
           }
 
           // Add to history so it appears in Extrato and Details
@@ -258,7 +258,7 @@ export default function App() {
           const labelMatch = lancamento.categoriaLabel || 'Outros';
           const matchItemIndex = newData.gastosMes.findIndex((i: any) => i.d === labelMatch);
           if (matchItemIndex !== -1) {
-              newData.gastosMes[matchItemIndex].v += lancamento.valor;
+              newData.gastosMes[matchItemIndex].v = round2(newData.gastosMes[matchItemIndex].v + lancamento.valor);
           } else {
               newData.gastosMes.push({ id, d: labelMatch, v: lancamento.valor, paid: false });
           }
@@ -342,7 +342,7 @@ export default function App() {
               ...(data.gastosMesHistorico || []).filter((i: any) => i.paid),
               ...(data.dividas || []).filter((i: any) => i.paid)
           ].reduce((acc: number, curr: any) => acc + curr.v, 0);
-          const saldoLiquido = totalReceitas - totalSaidas;
+          const saldoLiquido = round2(totalReceitas - totalSaidas);
 
           initialData = JSON.parse(JSON.stringify(data));
           
@@ -426,10 +426,10 @@ export default function App() {
           const oldMetaSemanal = data.mercado.metaSemanal;
           const oldGastosReais = data.mercado.gastosReais;
           const oldOverflow = data.mercado.overflowAnterior || 0;
-          const oldTotalReal = oldGastosReais.reduce((a: number, b: number) => a + b, 0);
-          const oldTotalPrevisto = oldMetaSemanal * oldGastosReais.length;
+          const oldTotalReal = round2(oldGastosReais.reduce((a: number, b: number) => a + b, 0));
+          const oldTotalPrevisto = round2(oldMetaSemanal * oldGastosReais.length);
           
-          const newOverflow = oldOverflow + (oldTotalReal - oldTotalPrevisto);
+          const newOverflow = round2(oldOverflow + (oldTotalReal - oldTotalPrevisto));
           initialData.mercado.overflowAnterior = newOverflow > 0 ? newOverflow : 0;
           initialData.mercado.totalEstouradoMesAnterior = newOverflow > 0 ? newOverflow : 0;
       }

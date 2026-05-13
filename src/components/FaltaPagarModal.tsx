@@ -1,6 +1,6 @@
 import React from 'react';
 import { OrcamentoData } from '../types';
-import { fmt } from '../utils';
+import { fmt, round2 } from '../utils';
 import { X, Calendar } from 'lucide-react';
 
 interface FaltaPagarModalProps {
@@ -32,7 +32,7 @@ export function FaltaPagarModal({ data, onClose }: FaltaPagarModalProps) {
         return parseInt(a) - parseInt(b);
     });
 
-    const totalFalta = allUnpaid.reduce((sum, item) => sum + item.v, 0);
+    const totalFalta = round2(allUnpaid.reduce((sum, item) => sum + item.v, 0));
 
     return (
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">

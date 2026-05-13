@@ -46,6 +46,10 @@ export function unfmt(v: number | string | undefined | null): number {
     return isNaN(val) ? 0 : val;
 }
 
+export function round2(n: number): number {
+    return Math.round(n * 100) / 100;
+}
+
 export function maskMoney(v: string | number): string {
     if (v === undefined || v === null) return "";
     
