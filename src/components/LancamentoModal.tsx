@@ -24,6 +24,8 @@ export function LancamentoModal({ isOpen, onClose, onSave, mercado, initialType 
         { id: 'personalizado', label: 'Criar Categoria', color: 'text-indigo-700 bg-indigo-50 border-indigo-200' },
         { id: 'receita_principal', label: 'Receita Principal', color: 'text-emerald-700 bg-emerald-100 border-emerald-500' },
         { id: 'receita_extras', label: 'Extras', color: 'text-blue-700 bg-blue-100 border-blue-500' },
+        { id: 'conta_fixa', label: 'Conta Fixa', color: 'text-slate-700 bg-slate-100 border-slate-500' },
+        { id: 'conta_variavel', label: 'Conta Variável', color: 'text-amber-700 bg-amber-100 border-amber-500' },
         { id: 'mercado', label: 'Mercado', icon: ShoppingCart, color: 'text-purple-700 bg-purple-100 border-purple-500' },
         { id: 'farmacia', label: 'Farmácia', color: 'text-rose-700 bg-rose-100 border-rose-500' },
         { id: 'perfumaria', label: 'Perfumaria', color: 'text-pink-700 bg-pink-100 border-pink-500' },
@@ -114,7 +116,8 @@ export function LancamentoModal({ isOpen, onClose, onSave, mercado, initialType 
             finalSemana = day <= 7 ? 1 : day <= 14 ? 2 : day <= 21 ? 3 : day <= 28 ? 4 : 5;
         }
         else if (selectedCat === 'receita_principal' || selectedCat === 'receita_extras' || selectedCat === 'receita' || selectedCat === 'extras_entrada') sysTipo = 'receitas';
-        else if (selectedCat === 'conta') sysTipo = 'fixas';
+        else if (selectedCat === 'conta_fixa' || selectedCat === 'conta') sysTipo = 'fixas';
+        else if (selectedCat === 'conta_variavel') sysTipo = 'variaveis';
 
         const catObj = categorias.find(c => c.id === selectedCat);
         const catLabel = selectedCat === 'personalizado' ? customCat.trim() : (catObj?.label || 'Lançamento');

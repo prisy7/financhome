@@ -11,6 +11,8 @@ export interface Item {
     parcelaAtual?: number;
     totalParcelas?: number;
     vencimento?: number; // Dia de vencimento 1-31
+    isReserva?: boolean;
+    semana?: number;
 }
 
 export interface CronogramaItem extends Item {

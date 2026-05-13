@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Calendar, ChevronLeft, ChevronRight, Info, CheckCircle2, Circle, Trash2, Edit2 } from 'lucide-react';
+import { Calendar, ChevronLeft, ChevronRight, Info, CheckCircle2, Circle, Trash2, Edit2, X } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, isToday, startOfWeek, endOfWeek } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -16,6 +16,14 @@ interface TabCalendarioProps {
 
 export function TabCalendario({ data, setData, saveData, monthName, onClose }: TabCalendarioProps) {
     const [selectedDay, setSelectedDay] = useState<number | null>(null);
+
+    React.useEffect(() => {
+        const handleEsc = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') onClose();
+        };
+        window.addEventListener('keydown', handleEsc);
+        return () => window.removeEventListener('keydown', handleEsc);
+    }, [onClose]);
 
     // Parse month name to get actual date info
     const { month, year } = useMemo(() => {
@@ -131,7 +139,7 @@ export function TabCalendario({ data, setData, saveData, monthName, onClose }: T
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-6 bg-slate-900/60 backdrop-blur-sm">
-            <div className="bg-white w-full max-w-7xl rounded-[2.5rem] shadow-2xl flex flex-col animate-in fade-in zoom-in duration-300">
+            <div className="bg-white w-full max-w-5xl max-h-[95vh] rounded-[2.5rem] shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in duration-300">
                 {/* Header do Modal */}
                 <div className="px-8 py-6 border-b border-slate-100 flex items-center justify-between bg-white shrink-0">
                     <h2 className="text-xl md:text-2xl font-black text-slate-800 tracking-tight flex items-center gap-4">
@@ -147,14 +155,15 @@ export function TabCalendario({ data, setData, saveData, monthName, onClose }: T
                     </h2>
                     <button 
                         onClick={onClose}
-                        className="w-12 h-12 rounded-2xl bg-slate-50 text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all flex items-center justify-center font-black"
+                        className="w-12 h-12 rounded-2xl bg-slate-50 text-slate-400 hover:text-rose-500 hover:bg-rose-50 transition-all flex items-center justify-center"
+                        title="Fechar (ESC)"
                     >
-                        ✕
+                        <X size={24} strokeWidth={3} />
                     </button>
                 </div>
 
-                <div className="flex-1 p-6 md:p-8">
-                    <div className="flex flex-col gap-8 h-full">
+                <div className="flex-1 p-6 md:p-8 overflow-y-auto">
+                    <div className="flex flex-col gap-8">
                         
                         {/* Calendar View */}
                         <div className="flex-1 min-w-0">
@@ -164,9 +173,9 @@ export function TabCalendario({ data, setData, saveData, monthName, onClose }: T
                                 ))}
                             </div>
 
-                            <div className="grid grid-cols-7 gap-2 md:gap-3">
+                            <div className="grid grid-cols-7 gap-1 md:gap-2">
                                 {emptySlots.map(slot => (
-                                    <div key={`empty-${slot}`} className="h-16 md:h-24 rounded-2xl bg-slate-50/30"></div>
+                                    <div key={`empty-${slot}`} className="h-14 md:h-20 rounded-2xl bg-slate-50/30"></div>
                                 ))}
                                 
                                 {daysInMonth.map(date => {
@@ -180,7 +189,7 @@ export function TabCalendario({ data, setData, saveData, monthName, onClose }: T
                                         <button
                                             key={day}
                                             onClick={() => setSelectedDay(day)}
-                                            className={`relative flex flex-col h-16 md:h-24 rounded-xl md:rounded-2xl p-1 md:p-2 border-2 transition-all duration-200 outline-none
+                                            className={`relative flex flex-col h-14 md:h-20 rounded-xl md:rounded-2xl p-1 md:p-1.5 border-2 transition-all duration-200 outline-none
                                                 ${isSelected ? 'border-indigo-500 bg-indigo-50/30' : 'border-slate-50 hover:border-slate-200 bg-white'}
                                                 ${isTodayDate && !isSelected ? 'border-amber-200 bg-amber-50/30' : ''}
                                             `}

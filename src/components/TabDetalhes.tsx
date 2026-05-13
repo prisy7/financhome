@@ -429,32 +429,43 @@ export function TabDetalhes({ data, setData, saveData, monthName = '', onAdd }: 
                                                             </button>
                                                         </div>
                                                     )}
-                                                                                                   {((type === 'fixas' || type === 'variaveis' || (type === 'receitas' && item.vencimento)) && !isSaldoAnterior) && (
-                                                        <div className={`flex flex-col items-center justify-center p-0.5 rounded-lg border bg-white ${dateDivColor} w-[55px] md:w-[75px] flex-shrink-0 ${isReserva ? 'opacity-40' : ''} relative overflow-hidden`}>
-                                                            <div className="flex flex-col items-center leading-none">
-                                                                <span className="text-[6px] md:text-[8px] font-black uppercase tracking-tighter opacity-70 mb-0.5">Venc.</span>
-                                                                <span className="text-[11px] md:text-[13px] font-black tracking-tighter">
-                                                                    {item.vencimento ? formatFullDate(monthName, item.vencimento).slice(0, 5) : 'S/D'}
-                                                                </span>
+                                                                                                   {((type === 'fixas' || type === 'variaveis') && !isSaldoAnterior) && (
+                                                        <div 
+                                                            className={`flex flex-col items-center justify-center p-0.5 rounded-lg border bg-white ${dateDivColor} w-[55px] md:w-[75px] flex-shrink-0 ${isReserva ? 'opacity-40' : ''} relative overflow-hidden cursor-text group/date transition-colors focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100`}
+                                                            onClick={(e) => {
+                                                                const input = e.currentTarget.querySelector('input');
+                                                                if (input && !isReserva) {
+                                                                    input.focus();
+                                                                }
+                                                            }}
+                                                        >
+                                                            <div className="flex flex-col items-center leading-none w-full relative">
+                                                                <span className="text-[6px] md:text-[8px] font-black uppercase tracking-tighter opacity-70 mb-0.5 pointer-events-none">Venc.</span>
+                                                                {!item.vencimento && (
+                                                                    <div className="absolute inset-0 top-3 flex items-center justify-center gap-1 pointer-events-none opacity-100 group-focus-within/date:opacity-0 transition-opacity">
+                                                                        <Calendar size={10} className="text-slate-400 group-hover/date:text-blue-500" />
+                                                                        <span className="text-[11px] md:text-[13px] font-black tracking-tighter text-slate-400 group-hover/date:text-blue-500">S/D</span>
+                                                                    </div>
+                                                                )}
+                                                                <input 
+                                                                    type="number" 
+                                                                    min="1" max="31"
+                                                                    disabled={isReserva}
+                                                                    className={`w-full bg-transparent text-center text-[11px] md:text-[13px] font-black tracking-tighter focus:outline-none appearance-none m-0 p-0 ${!item.vencimento ? 'opacity-0 focus:opacity-100' : ''} [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none`}
+                                                                    style={{ MozAppearance: 'textfield' }}
+                                                                    value={item.vencimento || ''}
+                                                                    onChange={(e) => {
+                                                                        let val = parseInt(e.target.value);
+                                                                        if (isNaN(val)) {
+                                                                            updateItem(type, item.id, 'vencimento', 0, false);
+                                                                        } else {
+                                                                            val = Math.min(31, Math.max(1, val));
+                                                                            updateItem(type, item.id, 'vencimento', val, false);
+                                                                        }
+                                                                    }}
+                                                                    onFocus={(e) => e.target.select()}
+                                                                />
                                                             </div>
-                                                            <input 
-                                                                type="date" 
-                                                                disabled={isReserva}
-                                                                className={`absolute inset-0 opacity-0 cursor-pointer ${isReserva ? 'hidden' : ''}`}
-                                                                value={(() => {
-                                                                    if (!item.vencimento) return '';
-                                                                    const parts = monthName.toLowerCase().split(' ');
-                                                                    const year = parseInt(parts[1]) || new Date().getFullYear();
-                                                                    const month = MONTH_MAP[parts[0]] ?? new Date().getMonth();
-                                                                    return `${year}-${String(month + 1).padStart(2, '0')}-${String(item.vencimento).padStart(2, '0')}`;
-                                                                })()}
-                                                                onChange={(e) => {
-                                                                    if (!e.target.value) return;
-                                                                    const dateObj = new Date(e.target.value + 'T12:00:00');
-                                                                    const val = dateObj.getDate();
-                                                                    updateItem(type, item.id, 'vencimento', val, false);
-                                                                }}
-                                                            />
                                                         </div>
                                                     )}
                                                         <div className="flex-grow min-w-[100px] md:min-w-[140px]">
