@@ -168,7 +168,7 @@ export function TabMercado({ data, setData, saveData, onAdd }: TabMercadoProps) 
                                             inputMode="decimal"
                                             value={gasto} 
                                             onChangeValue={(val) => updateGastoReal(i, val)}
-                                            className="w-full bg-white border border-slate-200 rounded-md py-1 text-center text-[14px] font-black outline-none text-slate-800 transition-all font-sans" 
+                                            className="w-full bg-white border border-slate-200 rounded-md py-1 text-center text-[12.5px] md:text-[13.5px] font-black outline-none text-slate-800 transition-all font-sans" 
                                         />
                                     </div>
                                     
@@ -217,14 +217,14 @@ export function TabMercado({ data, setData, saveData, onAdd }: TabMercadoProps) 
                                                 <span className="text-[11px] leading-none">{item.vencimento || '--'}</span>
                                             </div>
                                             <div className="min-w-0">
-                                                <p className="text-[14px] md:text-[15px] text-slate-700 uppercase tracking-tight leading-tight mb-1">{item.d}</p>
-                                                <span className="px-1.5 py-0.5 rounded-[3px] bg-indigo-50 text-indigo-500 text-[11px] md:text-xs uppercase tracking-widest">
+                                                <p className="text-[12.5px] md:text-[13.5px] text-slate-700 uppercase tracking-tight leading-tight mb-1">{item.d}</p>
+                                                <span className="px-1.5 py-0.5 rounded-[3px] bg-indigo-50 text-indigo-500 text-[10px] md:text-[11px] uppercase tracking-widest">
                                                     {(item as any).semana ? `S${(item as any).semana}` : 'Merc'}
                                                 </span>
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-3">
-                                            <p className="text-[14px] md:text-[15px] text-slate-800 tracking-tight">{fmt(item.v)}</p>
+                                            <p className="text-[12.5px] md:text-[13.5px] text-slate-800 tracking-tight">{fmt(item.v)}</p>
                                             <button 
                                                 onClick={() => {
                                                     if (window.confirm(`Deseja realmente excluir "${item.d}"?`)) {

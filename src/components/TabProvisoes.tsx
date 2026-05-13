@@ -356,9 +356,9 @@ export function TabProvisoes({ data, setData, saveData }: TabProvisoesProps) {
                                         ) : (
                                             gastosArray.map(g => (
                                                 <div key={g.id} className="flex flex-wrap md:flex-nowrap items-center justify-between p-3 px-5 bg-white rounded-2xl hover:bg-slate-50 border border-slate-100 transition-all shrink-0">
-                                                    <p className="text-[14px] md:text-[15px] text-slate-600 flex-grow pr-4 leading-tight tracking-tight">{g.d}</p>
+                                                    <p className="text-[12.5px] md:text-[13.5px] text-slate-600 flex-grow pr-4 leading-tight tracking-tight">{g.d}</p>
                                                     <div className="flex items-center gap-4 shrink-0">
-                                                        <span className="text-[14px] md:text-[15px] text-rose-500 shrink-0 tracking-tight">-{fmt(g.v)}</span>
+                                                        <span className="text-[12.5px] md:text-[13.5px] text-rose-500 shrink-0 tracking-tight">-{fmt(g.v)}</span>
                                                         <button 
                                                             onClick={() => removerGasto(key, g.id)}
                                                             className="text-slate-300 hover:text-rose-500 transition-all shrink-0 h-8 w-8 flex items-center justify-center rounded-lg hover:bg-rose-50"

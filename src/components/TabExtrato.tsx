@@ -513,7 +513,7 @@ export function TabExtrato({ data, setData, saveData, monthName }: TabExtratoPro
                                         {/* DESCRIÇÃO */}
                                         <div className="mb-3 md:mb-0 min-w-0">
                                             <span className="md:hidden text-[11px] font-black text-slate-500 uppercase mr-2.5 text-xs">Descrição:</span>
-                                            <p className={`text-[14px] md:text-[15px] tracking-tight ${item.paid ? 'text-slate-500' : 'text-slate-700'}`}>
+                                            <p className={`text-[12.5px] md:text-[13.5px] tracking-tight ${item.paid ? 'text-slate-500' : 'text-slate-700'}`}>
                                                 {description}
                                                 {!item.paid && item.tipo !== 'receitas' && <span className="ml-2 px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 text-[8px] uppercase font-black align-middle">Pendente</span>}
                                             </p>
@@ -522,7 +522,7 @@ export function TabExtrato({ data, setData, saveData, monthName }: TabExtratoPro
                                         {/* VALOR */}
                                         <div className="md:text-right border-t md:border-none pt-3 md:pt-0 mt-1 md:mt-0 flex flex-nowrap items-center justify-between md:justify-end gap-3">
                                             <span className="md:hidden text-[11px] font-black text-slate-500 uppercase mr-2.5 text-xs">Valor:</span>
-                                            <span className={`text-[14px] md:text-[15px] font-black tracking-tight ${(item as any).isSaldo ? 'text-blue-600' : (item.tipo === 'receitas' ? 'text-emerald-600' : 'text-rose-600')}`}>
+                                            <span className={`text-[12.5px] md:text-[13.5px] font-black tracking-tight ${(item as any).isSaldo ? 'text-blue-600' : (item.tipo === 'receitas' ? 'text-emerald-600' : 'text-rose-600')}`}>
                                                 {(item as any).isSaldo ? '' : (item.tipo === 'receitas' ? '+' : '-')}{fmt(item.v)}
                                             </span>
                                         </div>

@@ -171,18 +171,18 @@ export function TabDividas({ data, setData, saveData }: TabDividasProps) {
                                         {item.paid ? <CheckCircle2 size={16} md:size={18} /> : <Circle size={16} md:size={18} />}
                                     </button>
                                     <div className="min-w-0 flex-grow">
-                                        <p className={`text-[14px] md:text-[15px] tracking-tight leading-tight ${item.paid ? 'text-slate-400 line-through' : 'text-slate-800'}`}>
+                                        <p className={`text-[12.5px] md:text-[13.5px] tracking-tight leading-tight ${item.paid ? 'text-slate-400 line-through' : 'text-slate-800'}`}>
                                             {item.d}
                                         </p>
                                         <div className="flex items-center gap-2 md:gap-3 mt-1 md:mt-1.5 flex-wrap">
                                             <div className="flex items-center gap-1.5 bg-rose-50 px-2 md:px-3 py-1 rounded-lg border border-rose-100">
                                                 <Calendar size={10} md:size={12} className="text-rose-400" />
-                                                <span className="text-[11px] md:text-sm text-rose-600 uppercase tracking-widest leading-none">
+                                                <span className="text-[10px] md:text-[11px] text-rose-600 uppercase tracking-widest leading-none">
                                                     Parcela {item.parcelaAtual} de {item.totalParcelas}
                                                 </span>
                                             </div>
                                             {item.vencimento && (
-                                                <span className="text-[11px] md:text-sm text-slate-400 uppercase tracking-widest">
+                                                <span className="text-[10px] md:text-[11px] text-slate-400 uppercase tracking-widest">
                                                     DIA {item.vencimento}
                                                 </span>
                                             )}
@@ -191,7 +191,7 @@ export function TabDividas({ data, setData, saveData }: TabDividasProps) {
                                 </div>
                                 <div className="flex items-center justify-between sm:justify-end gap-3 md:gap-10 w-full sm:w-auto mt-4 sm:mt-0 pt-4 sm:pt-0 border-t sm:border-t-0 border-slate-50">
                                     <div className="text-right">
-                                        <p className={`text-[14px] md:text-[15px] tracking-tight ${item.paid ? 'text-emerald-400' : 'text-rose-500'}`}>{fmt(item.v)}</p>
+                                        <p className={`text-[12.5px] md:text-[13.5px] tracking-tight ${item.paid ? 'text-emerald-400' : 'text-rose-500'}`}>{fmt(item.v)}</p>
                                         {item.totalParcelas && item.parcelaAtual && (
                                             <p className="text-[10px] md:text-xs text-slate-300 uppercase tracking-widest leading-none mt-1">
                                                 Restante: {fmt((item.totalParcelas - item.parcelaAtual + (item.paid ? 0 : 1)) * item.v)}

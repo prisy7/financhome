@@ -328,12 +328,12 @@ export function TabDetalhes({ data, setData, saveData, monthName = '', onAdd }: 
                         <div className={`${type === 'receitas' ? 'w-8 h-8 md:w-10 md:h-10' : 'w-10 h-10 md:w-12 md:h-12'} rounded-2xl flex items-center justify-center border border-slate-100 ${iconBg} ${color}`}>
                             <Icon size={type === 'receitas' ? 16 : 20} />
                         </div>
-                        <h3 className="text-sm md:text-base font-black uppercase tracking-widest text-slate-600 italic">{title}</h3>
+                        <h3 className="text-[12.5px] md:text-[14.5px] font-black uppercase tracking-widest text-slate-600 italic">{title}</h3>
                     </div>
                     <div className="flex items-center gap-3">
                         <div className="flex flex-col items-end mr-2 md:mr-4">
-                            <p className="text-[9px] font-black text-slate-400 tracking-widest uppercase mb-0.5">Total</p>
-                            <p className={`text-sm md:text-base font-black tracking-tight leading-none ${color}`}>{fmt(finalTotalDisplay)}</p>
+                            <p className="text-[8px] font-black text-slate-400 tracking-widest uppercase mb-0.5">Total</p>
+                            <p className={`text-[12.5px] md:text-[14.5px] font-black tracking-tight leading-none ${color}`}>{fmt(finalTotalDisplay)}</p>
                         </div>
                         <button 
                             onClick={(e) => { 
@@ -344,10 +344,10 @@ export function TabDetalhes({ data, setData, saveData, monthName = '', onAdd }: 
                                     handleAdd(type);
                                 }
                             }} 
-                            className={`flex items-center justify-center w-8 h-8 md:w-9 md:h-9 rounded-lg transition-all ${btnBg} text-white hover:opacity-90 active:scale-95 shadow-sm`}
+                            className={`flex items-center justify-center w-[29px] h-[29px] md:w-8 md:h-8 rounded-lg transition-all ${btnBg} text-white hover:opacity-90 active:scale-95 shadow-sm`}
                             title="Adicionar Item"
                         >
-                            <Plus size={16} strokeWidth={3} />
+                            <Plus size={14.5} strokeWidth={3} />
                         </button>
                         <div className="w-10 h-10 rounded-xl flex items-center justify-center text-slate-400 hover:bg-slate-100 transition-colors">
                             {isOpen ? <ChevronUp size={24} /> : <ChevronDown size={24} />}
@@ -470,18 +470,18 @@ export function TabDetalhes({ data, setData, saveData, monthName = '', onAdd }: 
                                                     )}
                                                         <div className="flex-grow min-w-[100px] md:min-w-[140px]">
                                                             {isProtected || isReserva ? (
-                                                                <p className={`text-[14px] md:text-[15px] px-1 md:px-2 transition-all tracking-tight leading-tight ${applyPaidStyle ? 'text-emerald-500 line-through decoration-emerald-500/50 decoration-2' : 'text-slate-800'} ${isReserva ? 'text-indigo-600' : ''}`}>
-                                                                    {isReserva && <span className="text-[11px] bg-indigo-50 text-indigo-500 px-2 py-0.5 rounded-md mr-2 uppercase tracking-widest leading-none">Reserva</span>}
+                                                                <p className={`text-[12.5px] md:text-[13.5px] px-1 md:px-2 transition-all tracking-tight leading-tight ${applyPaidStyle ? 'text-emerald-500 line-through decoration-emerald-500/50 decoration-2' : 'text-slate-800'} ${isReserva ? 'text-indigo-600' : ''}`}>
+                                                                    {isReserva && <span className="text-[10px] bg-indigo-50 text-indigo-500 px-2 py-0.5 rounded-md mr-2 uppercase tracking-widest leading-none">Reserva</span>}
                                                                     {(item.d || 'Sem descrição').replace(/^(?:Aporte:\s*)?(?:Reserva|Provisão|Meta)(?:\s+de)?\s+/i, '')}
                                                                     {item.parcelaAtual && item.totalParcelas && (
-                                                                        <span className="ml-2 text-[9px] text-slate-400 uppercase tracking-tighter">
+                                                                        <span className="ml-2 text-[8px] text-slate-400 uppercase tracking-tighter">
                                                                             ({item.parcelaAtual}/{item.totalParcelas})
                                                                         </span>
                                                                     )}
                                                                 </p>
                                                             ) : (
                                                                 <input 
-                                                                    className={`w-full bg-transparent focus:outline-none text-[14px] md:text-[15px] tracking-tight leading-tight transition-all ${applyPaidStyle ? 'text-emerald-500 line-through decoration-emerald-500/50 decoration-2' : (isMobile ? `px-2 ${isReceitas ? 'py-0.5' : 'py-1'} md:px-3 ${isReceitas ? 'md:py-1' : 'md:py-1.5'} text-slate-700` : `bg-slate-100 focus:bg-white rounded-lg px-2 ${isReceitas ? 'py-0.5' : 'py-1'} md:px-3 ${isReceitas ? 'md:py-1' : 'md:py-1.5'} text-slate-700 focus:ring-4 focus:ring-blue-50/50`)}`} 
+                                                                    className={`w-full bg-transparent focus:outline-none text-[12.5px] md:text-[13.5px] tracking-tight leading-tight transition-all ${applyPaidStyle ? 'text-emerald-500 line-through decoration-emerald-500/50 decoration-2' : (isMobile ? `px-2 ${isReceitas ? 'py-0.5' : 'py-1'} md:px-3 ${isReceitas ? 'md:py-1' : 'md:py-1.5'} text-slate-700` : `bg-slate-100 focus:bg-white rounded-lg px-2 ${isReceitas ? 'py-0.5' : 'py-1'} md:px-3 ${isReceitas ? 'md:py-1' : 'md:py-1.5'} text-slate-700 focus:ring-4 focus:ring-blue-50/50`)}`} 
                                                                     value={item.d} 
                                                                     onChange={(e) => updateItem(type, item.id, 'd', e.target.value, true)} 
                                                                     onBlur={(e) => updateItem(type, item.id, 'd', e.target.value, false)}
@@ -492,18 +492,17 @@ export function TabDetalhes({ data, setData, saveData, monthName = '', onAdd }: 
                                                         </div>
                                                         <div className="flex-shrink-0 w-[80px] md:w-[100px]">
                                                             {isReserva ? (
-                                                                <p className={`text-right text-[14px] md:text-[15px] px-1 md:px-2 transition-all tracking-tight ${applyPaidStyle ? 'text-emerald-500 line-through decoration-emerald-500/50 decoration-2' : 'text-slate-900'} ${isReserva ? 'text-indigo-600' : ''}`}>{fmt(item.v)}</p>
+                                                                <p className={`text-right text-[12.5px] md:text-[13.5px] px-1 md:px-2 transition-all tracking-tight ${applyPaidStyle ? 'text-emerald-500 line-through decoration-emerald-500/50 decoration-2' : 'text-slate-900'} ${isReserva ? 'text-indigo-600' : ''}`}>{fmt(item.v)}</p>
                                                             ) : isMarketMeta ? (
                                                                 <div className="flex flex-col items-end">
-                                                                    <span className="text-[14px] text-rose-500">{fmt(totalMercadoReal)}</span>
+                                                                    <span className="text-[12.5px] md:text-[13.5px] text-rose-500">{fmt(totalMercadoReal)}</span>
                                                                     <span className="text-[9px] text-slate-400 mt-0.5">Até agora</span>
                                                                 </div>
                                                             ) : (
                                                                 <div 
-                                                                    className={`w-full bg-transparent text-right focus-within:outline-none text-[14px] md:text-[15px] tracking-tight transition-all ${applyPaidStyle ? 'text-emerald-500 line-through decoration-emerald-500/50 decoration-2' : (isMobile ? `px-2 ${isReceitas ? 'py-0.5' : 'py-1'} md:px-2 ${isReceitas ? 'md:py-1' : 'md:py-1.5'} text-slate-700` : `bg-slate-100 focus-within:bg-white rounded-lg px-2 ${isReceitas ? 'py-0.5' : 'py-1'} md:px-2 ${isReceitas ? 'md:py-1' : 'md:py-1.5'} text-slate-700 border-none focus-within:ring-4 focus-within:ring-blue-50/50`)}`} 
+                                                                    className={`w-full bg-transparent text-right focus-within:outline-none text-[12.5px] md:text-[13.5px] tracking-tight transition-all ${applyPaidStyle ? 'text-emerald-500 line-through decoration-emerald-500/50 decoration-2' : (isMobile ? `px-2 ${isReceitas ? 'py-0.5' : 'py-1'} md:px-2 ${isReceitas ? 'md:py-1' : 'md:py-1.5'} text-slate-700` : `bg-slate-100 focus-within:bg-white rounded-lg px-2 ${isReceitas ? 'py-0.5' : 'py-1'} md:px-2 ${isReceitas ? 'md:py-1' : 'md:py-1.5'} text-slate-700 border-none focus-within:ring-4 focus-within:ring-blue-50/50`)}`} 
                                                                 >
                                                                     <CurrencyInput 
-                                                                        inputMode="decimal"
                                                                         className="w-full bg-transparent text-right outline-none disabled:text-slate-700"
                                                                         value={item.v} 
                                                                         onFocus={() => setOriginalValue(item.v)}
