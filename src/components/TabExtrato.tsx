@@ -18,6 +18,18 @@ export function TabExtrato({ data, setData, saveData, monthName }: TabExtratoPro
     const [categoryFilter, setCategoryFilter] = useState<string>('all');
     const [showFaltaPagar, setShowFaltaPagar] = useState(false);
 
+    const abreviarCategoria = (nome: string) => {
+        const abreviacoes: Record<string, string> = {
+            'Restaurante/Lanche': 'Rest/Lanche',
+            'Saída/Passeio': 'Saída/Passeio',
+            'Restaurante': 'Rest.',
+            'Utilidades': 'Utilid.',
+            'Perfumaria': 'Perfum.',
+            'Papelaria': 'Papel.',
+        };
+        return abreviacoes[nome] || nome;
+    };
+
     if (!data) return null;
 
     // DATA FOR DASHBOARD
@@ -326,6 +338,17 @@ export function TabExtrato({ data, setData, saveData, monthName }: TabExtratoPro
         showToast('Lançamento removido!', 'success');
     };
 
+    const mesNumero = (() => {
+        if (!monthName) return '--';
+        const meses: Record<string, string> = {
+            'janeiro':'01','fevereiro':'02','março':'03','abril':'04',
+            'maio':'05','junho':'06','julho':'07','agosto':'08',
+            'setembro':'09','outubro':'10','novembro':'11','dezembro':'12'
+        };
+        const nomeMes = monthName.toLowerCase().split(' ')[0];
+        return meses[nomeMes] || '--';
+    })();
+
     return (
         <div className="fade-in space-y-4 md:space-y-6 mb-12">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -334,7 +357,7 @@ export function TabExtrato({ data, setData, saveData, monthName }: TabExtratoPro
 
                     <div className="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden">
                         <div className="p-5 md:p-6 bg-slate-50/30 border-b border-slate-50 flex flex-col sm:flex-row justify-between gap-4 sm:items-center">
-                            <h3 className="text-base md:text-lg font-black text-slate-800 uppercase tracking-widest italic">Visão Geral</h3>
+                            <h3 className="text-base md:text-base font-black text-slate-800 uppercase tracking-widest italic">Visão Geral</h3>
                             <div className="flex bg-white rounded-xl border border-slate-100 overflow-x-auto hide-scrollbar p-1 gap-1 shadow-sm flex-shrink-0">
                                 <button 
                                     onClick={() => setFilter('all')} 
@@ -405,13 +428,13 @@ export function TabExtrato({ data, setData, saveData, monthName }: TabExtratoPro
                         )}
 
                         {/* TABLE HEADERS */}
-                        <div className="hidden md:grid grid-cols-[40px_80px_200px_1fr_100px_40px] gap-x-4 px-6 md:px-6 py-4 bg-slate-100/60 border-b border-slate-200 text-[12px] font-black text-slate-500 uppercase tracking-[0.2em] items-center">
-                            <div className="flex items-center justify-center opacity-40"><CheckCircle2 size={10} /></div>
-                            <div>Data</div>
-                            <div>Categoria</div>
-                            <div>Descrição</div>
-                            <div className="text-right">Valor</div>
-                            <div></div>
+                        <div className="hidden md:flex flex-row gap-2 px-3 py-2 bg-slate-100/60 border-b border-slate-200 text-[11px] font-black text-slate-500 uppercase tracking-[0.15em] items-center">
+                            <div className="w-6 shrink-0 flex justify-center opacity-40"><CheckCircle2 size={10} /></div>
+                            <div className="w-40 shrink-0">Data</div>
+                            <div className="w-96 shrink-0">Categoria</div>
+                            <div className="flex-1 min-w-0">Descrição</div>
+                            <div className="w-40 shrink-0 text-right">Valor</div>
+                            <div className="w-6 shrink-0"></div>
                         </div>
                         
                         {filteredItems.length === 0 ? (
@@ -438,11 +461,11 @@ export function TabExtrato({ data, setData, saveData, monthName }: TabExtratoPro
                                     return (
                                         <div 
                                             key={`${item.tipo}-${item.id}`} 
-                                            className={`md:grid md:grid-cols-[40px_80px_200px_1fr_100px_40px] p-4 md:p-4 md:px-6 flex flex-col md:flex-none md:items-center hover:bg-slate-50 transition-all group gap-x-4 border-b border-slate-100 ${!item.paid ? 'bg-slate-50/50' : ''}`}
+                                            className={`flex flex-row items-center gap-2 px-3 py-2 hover:bg-slate-50 transition-all group border-b border-slate-100 ${!item.paid ? 'bg-slate-50/50' : ''}`}
                                         >
 
                                         {/* CHECKBOX */}
-                                        <div className="mb-4 md:mb-0">
+                                        <div className="w-6 shrink-0">
                                           <button 
                                             onClick={() => togglePaid(item.id, item.tipo)}
                                             className={`w-6 h-6 md:w-5 md:h-5 rounded-lg border-2 flex items-center justify-center transition-all ${item.paid ? 'bg-emerald-500 border-emerald-500 text-white shadow-sm' : 'border-slate-300 hover:border-slate-400 bg-white'}`}
@@ -452,24 +475,22 @@ export function TabExtrato({ data, setData, saveData, monthName }: TabExtratoPro
                                         </div>
 
                                         {/* DATA */}
-                                        <div className="mb-2 md:mb-0 leading-none">
+                                        <div className="w-40 shrink-0 leading-none">
                                             <span className="md:hidden text-[11px] font-black text-slate-500 uppercase mr-2.5 text-xs">Data:</span>
                                             <span className="text-[13px] md:text-[14px] font-black text-slate-600 uppercase tracking-widest leading-none">
-                                                {item.vencimento ? formatFullDate(monthName, item.vencimento) : '-'}
+                                                {item.vencimento
+                                                    ? `${String(item.vencimento).padStart(2, '0')}/${mesNumero}`
+                                                    : '-'}
                                             </span>
                                         </div>
 
                                         {/* CATEGORIA */}
-                                        <div className="mb-2 md:mb-0 flex items-center flex-wrap gap-2 group min-w-0">
+                                        <div className="w-96 shrink-0 flex items-center flex-wrap gap-2 group min-w-0">
                                             <span className="md:hidden text-[11px] font-black text-slate-500 uppercase mr-2.5 text-xs">Categoria:</span>
-                                            <span className="inline-block max-w-[150px] whitespace-normal break-words px-2 py-1 text-[10px] font-black uppercase tracking-widest rounded leading-tight text-white text-center" style={{ backgroundColor: catColor }}>
-                                                {category}
+                                            <span className="inline-block max-w-[320px] whitespace-nowrap overflow-hidden text-ellipsis px-2 py-0.5 text-[9px] font-black uppercase tracking-widest rounded leading-tight text-white text-center" style={{ backgroundColor: catColor }}>
+                                                {abreviarCategoria(category)}
                                             </span>
-                                            {item.badge === 'Mercado' && (
-                                                <span className={`inline-block whitespace-normal text-center max-w-[90px] break-words py-1 px-2 rounded-full leading-tight text-[9px] font-black uppercase tracking-[0.1em] border border-transparent bg-purple-50 text-purple-400`}>
-                                                    Mercado
-                                                </span>
-                                            )}
+
                                             <button 
                                                 onClick={() => {
                                                     const newCat = prompt(`Nova categoria para "${description}":`, category);
@@ -507,7 +528,7 @@ export function TabExtrato({ data, setData, saveData, monthName }: TabExtratoPro
                                         </div>
 
                                         {/* DESCRIÇÃO */}
-                                        <div className="mb-3 md:mb-0 min-w-0">
+                                        <div className="flex-1 min-w-0">
                                             <span className="md:hidden text-[11px] font-black text-slate-500 uppercase mr-2.5 text-xs">Descrição:</span>
                                             <p className={`break-words text-[12.5px] md:text-[13.5px] tracking-tight ${item.paid ? 'text-slate-500' : 'text-slate-700'}`}>
                                                 {description}
@@ -516,7 +537,7 @@ export function TabExtrato({ data, setData, saveData, monthName }: TabExtratoPro
                                         </div>
 
                                         {/* VALOR */}
-                                        <div className="md:text-right border-t md:border-none pt-3 md:pt-0 mt-1 md:mt-0 flex flex-nowrap items-center justify-between md:justify-end gap-3">
+                                        <div className="w-40 shrink-0 text-right flex flex-nowrap items-center justify-between md:justify-end gap-3">
                                             <span className="md:hidden text-[11px] font-black text-slate-500 uppercase mr-2.5 text-xs">Valor:</span>
                                             <span className={`text-[12.5px] md:text-[13.5px] font-black tracking-tight ${(item as any).isSaldo ? 'text-blue-600' : (item.tipo === 'receitas' ? 'text-emerald-600' : 'text-rose-600')}`}>
                                                 {(item as any).isSaldo ? '' : (item.tipo === 'receitas' ? '+' : '-')}{fmt(item.v)}
@@ -524,7 +545,7 @@ export function TabExtrato({ data, setData, saveData, monthName }: TabExtratoPro
                                         </div>
 
                                         {/* ACTIONS */}
-                                        <div className="flex items-center justify-end gap-2 mt-4 md:mt-0 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                                        <div className="w-6 shrink-0 flex items-center justify-end gap-2 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                                             {!isStructural && !item.isSaldo && (
                                                 <button 
                                                     onClick={() => {

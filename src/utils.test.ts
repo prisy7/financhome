@@ -43,8 +43,8 @@ describe('unfmt (Currency Parser)', () => {
 
 describe('formatFullDate', () => {
     it('formats valid day and month', () => {
-        expect(formatFullDate('março 24', 5)).toBe('05/03/24');
-        expect(formatFullDate('dezembro 23', 15)).toBe('15/12/23');
+        expect(formatFullDate('março 24', 5)).toBe('05/03');
+        expect(formatFullDate('dezembro 23', 15)).toBe('15/12');
     });
 
     it('handles undefined values', () => {

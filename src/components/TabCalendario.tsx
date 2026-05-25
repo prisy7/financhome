@@ -142,7 +142,7 @@ export function TabCalendario({ data, setData, saveData, monthName, onClose }: T
             <div className="bg-white w-full max-w-5xl max-h-[95vh] rounded-[2.5rem] shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in duration-300">
                 {/* Header do Modal */}
                 <div className="px-8 py-6 border-b border-slate-100 flex items-center justify-between bg-white shrink-0">
-                    <h2 className="text-xl md:text-2xl font-black text-slate-800 tracking-tight flex items-center gap-4">
+                    <h2 className="text-lg md:text-xl font-black text-slate-800 tracking-tight flex items-center gap-4">
                         <div className="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600">
                             <Calendar size={24} />
                         </div>
@@ -230,11 +230,11 @@ export function TabCalendario({ data, setData, saveData, monthName, onClose }: T
                                         {/* Top: Header and Summary */}
                                         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                                             <div className="flex items-center gap-4">
-                                                <div className="w-14 h-14 bg-white rounded-2xl shadow-sm flex items-center justify-center font-black text-indigo-600 text-2xl border border-slate-100">
+                                                <div className="w-14 h-14 bg-white rounded-2xl shadow-sm flex items-center justify-center font-black text-indigo-600 text-xl border border-slate-100">
                                                     {selectedDay}
                                                 </div>
                                                 <div>
-                                                    <h3 className="font-black text-slate-800 text-lg uppercase tracking-tight leading-none mb-1 flex items-baseline gap-2">
+                                                    <h3 className="font-black text-slate-800 text-base uppercase tracking-tight leading-none mb-1 flex items-baseline gap-2">
                                                         <span>{format(new Date(year, month, selectedDay), 'EEEE', { locale: ptBR })}</span>
                                                         <span className="text-sm text-slate-400 font-normal">{format(new Date(year, month, selectedDay), "dd 'de' MMMM", { locale: ptBR })}</span>
                                                     </h3>

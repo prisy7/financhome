@@ -22,6 +22,8 @@ export function TabDetalhes({ data, setData, saveData, monthName = '', onAdd }: 
         gastosMes: true
     });
     const [originalValue, setOriginalValue] = useState<number | null>(null);
+    const [addModalType, setAddModalType] = useState<'fixas' | 'variaveis' | null>(null);
+    const [addModalNome, setAddModalNome] = useState('');
 
     if (!data) return null;
     
@@ -94,6 +96,11 @@ export function TabDetalhes({ data, setData, saveData, monthName = '', onAdd }: 
     const saldoPrevisto = round2((saldoAnterior + totalReceitasNovasPrev) - totalSaidasPurasPrev - totalReservasPrev);
 
     const handleAdd = (type: 'receitas' | 'fixas' | 'variaveis' | 'gastosMes' | 'dividas') => {
+        if (type === 'fixas' || type === 'variaveis') {
+            setAddModalType(type);
+            setAddModalNome('');
+            return;
+        }
         const nome = window.prompt(`Nome do item:`);
         if (!nome || nome.trim() === '') return;
 
@@ -103,6 +110,18 @@ export function TabDetalhes({ data, setData, saveData, monthName = '', onAdd }: 
         (newData[type] as any).push({ id, d: nome.trim(), v: 0, paid: type === 'receitas' });
         setData(newData);
         saveData(newData);
+    };
+
+    const confirmAddModal = () => {
+        if (!addModalNome.trim() || !addModalType) return;
+        const newData = { ...data };
+        const id = crypto.randomUUID();
+        if (!newData[addModalType]) newData[addModalType] = [];
+        (newData[addModalType] as any).push({ id, d: addModalNome.trim(), v: 0, paid: false });
+        setData(newData);
+        saveData(newData);
+        setAddModalType(null);
+        setAddModalNome('');
     };
 
     const updateItem = (type: 'receitas' | 'fixas' | 'variaveis' | 'gastosMes' | 'dividas', id: string | number, field: string, val: string | boolean | number, skipConfirm: boolean = false) => {
@@ -321,7 +340,7 @@ export function TabDetalhes({ data, setData, saveData, monthName = '', onAdd }: 
         return (
             <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden flex flex-col h-full hover:shadow-md transition-all">
                 <div 
-                    className={`${type === 'receitas' ? 'px-5 py-3 md:px-7 md:py-4' : 'px-5 py-5 md:px-7 md:py-6'} border-b border-slate-50 flex items-center justify-between bg-slate-50/30 cursor-pointer`}
+                    className={`${type === 'receitas' ? 'px-5 py-2 md:px-7 md:py-3' : 'px-5 py-3 md:px-7 md:py-4'} border-b border-slate-50 flex items-center justify-between bg-slate-50/30 cursor-pointer`}
                     onClick={() => toggleSection(type)}
                 >
                     <div className="flex items-center gap-3 md:gap-5">
@@ -405,7 +424,7 @@ export function TabDetalhes({ data, setData, saveData, monthName = '', onAdd }: 
                                             const isGastosMesItem = type === 'gastosMes';
                                             const isReserva = (item as any).isReserva;
                                             const isReceitas = type === 'receitas';
-                                            const rowPadding = isReceitas ? 'px-4 py-0.5 md:px-6 md:py-1' : isGastosMesItem ? 'px-4 py-2 md:px-5 md:py-2.5' : 'px-5 py-2 md:px-6 md:py-2.5';
+                                            const rowPadding = isReceitas ? 'px-3 py-0.5 md:px-5 md:py-1' : isGastosMesItem ? 'px-3 py-1.5 md:px-4 md:py-2' : 'px-4 py-1.5 md:px-5 md:py-2';
 
                                             return (
                                                 <div key={item.id} className={`${rowPadding} flex flex-wrap md:flex-nowrap items-center justify-between gap-3 md:gap-4 group transition-all duration-300 ${bgRowColor} ${isPaid ? 'opacity-70' : ''} border-b border-slate-50 last:border-b-0`}>
@@ -545,47 +564,80 @@ export function TabDetalhes({ data, setData, saveData, monthName = '', onAdd }: 
 
     return (
         <div className="flex flex-col gap-4 md:gap-6 fade-in pb-12">
+            {addModalType && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
+                    <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-sm">
+                        <h3 className="text-base font-black text-slate-800 mb-1 uppercase tracking-tight">
+                            {addModalType === 'fixas' ? 'Nova Conta Fixa' : 'Nova Conta Variável'}
+                        </h3>
+                        <p className="text-xs text-slate-400 mb-4">Digite o nome da conta para adicionar à lista.</p>
+                        <input
+                            type="text"
+                            autoFocus
+                            value={addModalNome}
+                            onChange={e => setAddModalNome(e.target.value)}
+                            onKeyDown={e => { if (e.key === 'Enter') confirmAddModal(); if (e.key === 'Escape') setAddModalType(null); }}
+                            placeholder="Ex: Aluguel, Internet, Streaming..."
+                            className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-800 outline-none focus:ring-2 focus:ring-indigo-300 mb-4"
+                        />
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => setAddModalType(null)}
+                                className="flex-1 py-3 rounded-xl bg-slate-100 text-slate-600 text-sm font-black hover:bg-slate-200 transition-all"
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                onClick={confirmAddModal}
+                                className="flex-1 py-3 rounded-xl bg-indigo-600 text-white text-sm font-black hover:bg-indigo-700 transition-all"
+                            >
+                                Adicionar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
             {/* SUMMARY CARDS */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-5 mb-2">
-                <div className="bg-white p-4 md:p-6 rounded-2xl md:rounded-[1.5rem] border border-slate-100 shadow-sm flex flex-col md:flex-row items-start md:items-center gap-3 md:gap-4">
-                    <div className="w-8 h-8 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-slate-50 text-slate-500 flex items-center justify-center shrink-0">
-                        <Wallet size={16} className="md:w-6 md:h-6" />
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-3 mb-2">
+                <div className="bg-white p-3 md:p-4 rounded-xl md:rounded-2xl border border-slate-100 shadow-sm flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-3">
+                    <div className="w-7 h-7 md:w-9 md:h-9 rounded-lg md:rounded-xl bg-slate-50 text-slate-500 flex items-center justify-center shrink-0">
+                        <Wallet size={14} className="md:w-5 md:h-5" />
                     </div>
                     <div>
                         <p className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Saldo Inicial</p>
-                        <p className="text-sm md:text-lg font-black text-slate-700 tracking-tight leading-none mt-1.5 md:mt-2">{fmt(saldoAnterior)}</p>
+                        <p className="text-sm md:text-base font-black text-slate-700 tracking-tight leading-none mt-1">{fmt(saldoAnterior)}</p>
                     </div>
                 </div>
-                <div className="bg-white p-4 md:p-6 rounded-2xl md:rounded-[1.5rem] border border-slate-100 shadow-sm flex flex-col md:flex-row items-start md:items-center gap-3 md:gap-4">
-                    <div className="w-8 h-8 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-emerald-50 text-emerald-500 flex items-center justify-center shrink-0">
-                        <ArrowUpCircle size={16} className="md:w-6 md:h-6" />
+                <div className="bg-white p-3 md:p-4 rounded-xl md:rounded-2xl border border-slate-100 shadow-sm flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-3">
+                    <div className="w-7 h-7 md:w-9 md:h-9 rounded-lg md:rounded-xl bg-emerald-50 text-emerald-500 flex items-center justify-center shrink-0">
+                        <ArrowUpCircle size={14} className="md:w-5 md:h-5" />
                     </div>
                     <div>
                         <p className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Receitas</p>
-                        <p className="text-sm md:text-lg font-black text-emerald-600 tracking-tight leading-none mt-1.5 md:mt-2">
+                        <p className="text-sm md:text-base font-black text-emerald-600 tracking-tight leading-none mt-1">
                              {fmt(totalReceitasNovasReal + resgatesReservaTotal)}
                         </p>
                     </div>
                 </div>
-                <div className="bg-white p-4 md:p-6 rounded-2xl md:rounded-[1.5rem] border border-slate-100 shadow-sm flex flex-col md:flex-row items-start md:items-center gap-3 md:gap-4">
-                    <div className="w-8 h-8 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-rose-50 text-rose-500 flex items-center justify-center shrink-0">
-                        <ArrowDownCircle size={16} className="md:w-6 md:h-6" />
+                <div className="bg-white p-3 md:p-4 rounded-xl md:rounded-2xl border border-slate-100 shadow-sm flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-3">
+                    <div className="w-7 h-7 md:w-9 md:h-9 rounded-lg md:rounded-xl bg-rose-50 text-rose-500 flex items-center justify-center shrink-0">
+                        <ArrowDownCircle size={14} className="md:w-5 md:h-5" />
                     </div>
                     <div>
                         <p className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Gastos</p>
-                        <p className="text-sm md:text-lg font-black text-rose-600 tracking-tight leading-none mt-1.5 md:mt-2">
+                        <p className="text-sm md:text-base font-black text-rose-600 tracking-tight leading-none mt-1">
                             {fmt(totalSaidasPurasReal)}
                             <span className="text-[9px] md:text-[10px] text-slate-400 font-bold ml-1.5 md:ml-2">/ {fmt(totalSaidasPurasPrev)}</span>
                         </p>
                     </div>
                 </div>
-                <div className="bg-white p-4 md:p-6 rounded-2xl md:rounded-[1.5rem] border border-slate-100 shadow-sm flex flex-col md:flex-row items-start md:items-center gap-3 md:gap-4">
-                    <div className="w-8 h-8 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-blue-50 text-blue-500 flex items-center justify-center shrink-0">
-                        <CheckCircle2 size={16} className="md:w-6 md:h-6" />
+                <div className="bg-white p-3 md:p-4 rounded-xl md:rounded-2xl border border-slate-100 shadow-sm flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-3">
+                    <div className="w-7 h-7 md:w-9 md:h-9 rounded-lg md:rounded-xl bg-blue-50 text-blue-500 flex items-center justify-center shrink-0">
+                        <CheckCircle2 size={14} className="md:w-5 md:h-5" />
                     </div>
                     <div>
                         <p className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Saldo</p>
-                        <p className={`text-sm md:text-lg font-black tracking-tight leading-none mt-1.5 md:mt-2 ${saldoLiquido >= 0 ? 'text-blue-600' : 'text-rose-600'}`}>
+                        <p className={`text-sm md:text-base font-black tracking-tight leading-none mt-1 ${saldoLiquido >= 0 ? 'text-blue-600' : 'text-rose-600'}`}>
                             {fmt(saldoLiquido)}
                             <span className="text-[9px] md:text-[10px] text-slate-400 font-bold ml-1.5 md:ml-2">/ {fmt(saldoPrevisto)} prev</span>
                         </p>

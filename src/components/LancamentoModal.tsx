@@ -38,8 +38,6 @@ export function LancamentoModal({ isOpen, onClose, onSave, mercado, initialType 
         { id: 'personalizado', label: 'Criar Categoria', color: 'text-indigo-700 bg-indigo-50 border-indigo-200' },
         { id: 'receita_principal', label: 'Receita Principal', color: 'text-emerald-700 bg-emerald-100 border-emerald-500' },
         { id: 'receita_extras', label: 'Extras', color: 'text-blue-700 bg-blue-100 border-blue-500' },
-        { id: 'conta_fixa', label: 'Conta Fixa', color: 'text-slate-700 bg-slate-100 border-slate-500' },
-        { id: 'conta_variavel', label: 'Conta Variável', color: 'text-amber-700 bg-amber-100 border-amber-500' },
         { id: 'mercado', label: 'Mercado', icon: ShoppingCart, color: 'text-purple-700 bg-purple-100 border-purple-500' },
         { id: 'farmacia', label: 'Farmácia', color: 'text-rose-700 bg-rose-100 border-rose-500' },
         { id: 'perfumaria', label: 'Perfumaria', color: 'text-pink-700 bg-pink-100 border-pink-500' },
@@ -139,19 +137,6 @@ export function LancamentoModal({ isOpen, onClose, onSave, mercado, initialType 
         const catLabel = selectedCat === 'personalizado' ? customCat.trim() : (catObj?.label || 'Lançamento');
         const finalDesc = descTrimmed || catLabel;
 
-        if (selectedCat === 'personalizado') {
-            const newCatId = 'custom_' + Date.now();
-            const newCat = {
-                id: newCatId,
-                label: customCat.trim(),
-                color: initialType === 'receitas' ? 'text-emerald-700 bg-emerald-100 border-emerald-500' : 'text-slate-700 bg-slate-100 border-slate-500',
-                isCustom: true
-            };
-            const updatedCustom = [...customCategories, newCat];
-            setCustomCategories(updatedCustom);
-            localStorage.setItem('financask_custom_categories', JSON.stringify(updatedCustom));
-        }
-        
         onSave({ 
             tipo: sysTipo, 
             descricao: sysTipo === 'gastosMes' && !finalDesc.startsWith('[') ? `[${catLabel}] ${finalDesc}` : finalDesc, 
@@ -211,7 +196,7 @@ export function LancamentoModal({ isOpen, onClose, onSave, mercado, initialType 
                 </button>
                 
                 <div className="mb-6">
-                    <h3 className="text-xl font-bold text-slate-800">{initialType === 'receitas' ? 'Lançar Receita / Entrada' : 'Novo Gasto'}</h3>
+                    <h3 className="text-lg font-bold text-slate-800">{initialType === 'receitas' ? 'Lançar Receita / Entrada' : 'Novo Gasto'}</h3>
                     <p className="text-sm text-slate-500">{initialType === 'receitas' ? 'Registre seus ganhos e extras.' : 'Adicione uma nova transação rapidamente.'}</p>
                 </div>
 
@@ -247,18 +232,17 @@ export function LancamentoModal({ isOpen, onClose, onSave, mercado, initialType 
                                     onClick={(e) => {
                                         if (deleteMode && cat.id !== 'personalizado' && cat.id !== 'mercado' && cat.id !== 'receita_principal') {
                                             e.preventDefault();
-                                            if (window.confirm(`Deseja ocultar/excluir a categoria "${cat.label}"?`)) {
-                                                if (cat.isCustom) {
-                                                    const newCustom = customCategories.filter(c => c.id !== cat.id);
-                                                    setCustomCategories(newCustom);
-                                                    localStorage.setItem('financask_custom_categories', JSON.stringify(newCustom));
-                                                } else {
-                                                    const newHidden = [...hiddenCategories, cat.id];
-                                                    setHiddenCategories(newHidden);
-                                                    localStorage.setItem('financask_hidden_categories', JSON.stringify(newHidden));
-                                                }
-                                                if(selectedCat === cat.id) setSelectedCat(null);
+                                            if (cat.isCustom) {
+                                                const newCustom = customCategories.filter(c => c.id !== cat.id);
+                                                setCustomCategories(newCustom);
+                                                localStorage.setItem('financask_custom_categories', JSON.stringify(newCustom));
+                                            } else {
+                                                const newHidden = [...hiddenCategories, cat.id];
+                                                setHiddenCategories(newHidden);
+                                                localStorage.setItem('financask_hidden_categories', JSON.stringify(newHidden));
                                             }
+                                            if(selectedCat === cat.id) setSelectedCat(null);
+                                            showToast('Categoria removida', 'success');
                                             return;
                                         }
                                         if (!deleteMode) {
@@ -290,14 +274,39 @@ export function LancamentoModal({ isOpen, onClose, onSave, mercado, initialType 
                     {showCustomInput && (
                         <div className="fade-in">
                             <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Nome da Nova Categoria</label>
-                            <input 
-                                type="text" 
-                                value={customCat} 
-                                onChange={e => setCustomCat(e.target.value)} 
-                                className="w-full border border-indigo-200 p-3 rounded-lg text-sm focus:ring-4 focus:ring-indigo-100 outline-none bg-indigo-50/30 text-slate-800 placeholder:text-slate-400 font-bold" 
-                                placeholder="Ex: Aniversário, IPVA, etc..."
-                                autoFocus
-                            />
+                            <div className="flex gap-2">
+                                <input
+                                    type="text"
+                                    value={customCat}
+                                    onChange={e => setCustomCat(e.target.value)}
+                                    className="flex-1 border border-indigo-200 p-3 rounded-lg text-sm focus:ring-4 focus:ring-indigo-100 outline-none bg-indigo-50/30 text-slate-800 placeholder:text-slate-400 font-bold"
+                                    placeholder="Ex: Aniversário, IPVA, etc..."
+                                    autoFocus
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        if (!customCat.trim()) return;
+                                        const newCatId = 'custom_' + Date.now();
+                                        const newCat = {
+                                            id: newCatId,
+                                            label: customCat.trim(),
+                                            color: initialType === 'receitas' ? 'text-emerald-700 bg-emerald-100 border-emerald-500' : 'text-slate-700 bg-slate-100 border-slate-500',
+                                            isCustom: true
+                                        };
+                                        const updatedCustom = [...customCategories, newCat];
+                                        setCustomCategories(updatedCustom);
+                                        localStorage.setItem('financask_custom_categories', JSON.stringify(updatedCustom));
+                                        setSelectedCat(newCatId);
+                                        setCustomCat('');
+                                        setShowCustomInput(false);
+                                        showToast('Categoria salva!');
+                                    }}
+                                    className="px-4 py-2 bg-indigo-600 text-white text-xs font-black rounded-lg hover:bg-indigo-700 transition-all whitespace-nowrap"
+                                >
+                                    Salvar
+                                </button>
+                            </div>
                         </div>
                     )}
 

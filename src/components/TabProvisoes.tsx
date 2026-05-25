@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { OrcamentoData } from '../types';
 import { fmt, unfmt, showToast, maskMoney } from '../utils';
 import { provisaoMetaData } from '../constants';
-import { Info, HandCoins, X, Plus, Trash2, ArrowUpRight, ChevronDown } from 'lucide-react';
+import { Info, HandCoins, X, Plus, Trash2, ArrowUpRight, ChevronDown, Target, TrendingUp, CheckCircle2 } from 'lucide-react';
 import { CurrencyInput } from './CurrencyInput';
 
 interface TabProvisoesProps {
@@ -82,13 +82,13 @@ export function TabProvisoes({ data, setData, saveData }: TabProvisoesProps) {
         saveData(newData);
     };
 
-    const updateProvisionField = (key: string, field: 'title' | 'meta' | 'prazo', val: string) => {
+    const updateProvisionField = (key: string, field: 'title' | 'meta' | 'dataFinal', val: string) => {
         const newData = { ...data };
         if (!newData.provisoes[key]) {
             const meta = provisaoMetaData.find(p => p.key === key);
             newData.provisoes[key] = { 
                 title: meta?.title || key, 
-                meta: meta?.meta || 'Reserva R$ 0,00', 
+                meta: meta?.meta || '', 
                 saldoInicial: 0, 
                 gastos: [] 
             };
@@ -98,34 +98,38 @@ export function TabProvisoes({ data, setData, saveData }: TabProvisoesProps) {
         saveData(newData);
     };
 
-    const updateProvisionNumeric = (key: string, field: 'objetivo', val: number) => {
+    const updateProvisionNumeric = (key: string, field: 'objetivo' | 'metaMensal' | 'saldoInicial', val: number) => {
         const newData = { ...data };
         if (!newData.provisoes[key]) {
             const meta = provisaoMetaData.find(p => p.key === key);
             newData.provisoes[key] = { 
                 title: meta?.title || key, 
-                meta: meta?.meta || 'Reserva R$ 0,00', 
+                meta: meta?.meta || '', 
                 saldoInicial: 0, 
                 gastos: [] 
             };
         }
-        newData.provisoes[key][field] = val;
+        newData.provisoes[key][field] = Number(val) || 0;
         setData(newData);
         saveData(newData);
     };
 
     const addProvision = () => {
-        const key = `custom_${crypto.randomUUID()}`;
+        const key = `reserva_${Date.now()}`;
         const newData = { ...data };
         newData.provisoes[key] = {
-            title: 'Nova Reserva',
-            meta: 'Defina sua reserva',
+            title: 'NOVA RESERVA',
+            meta: 'Descrição',
+            dataFinal: 'Dez/2026',
             saldoInicial: 0,
+            objetivo: 0,
+            metaMensal: 0,
             gastos: []
         };
         setData(newData);
         saveData(newData);
         showToast("Nova reserva adicionada!", 'success');
+        toggleExpand(key);
     };
 
     const removeProvision = (key: string) => {
@@ -137,14 +141,6 @@ export function TabProvisoes({ data, setData, saveData }: TabProvisoesProps) {
         setData(newData);
         saveData(newData);
         showToast("Reserva excluída.", 'success');
-    };
-
-    const updateSaldoInicial = (key: string, val: number) => {
-        const newData = { ...data };
-        if (!newData.provisoes[key]) newData.provisoes[key] = { title: key, meta: '', saldoInicial: 0, gastos: [] };
-        newData.provisoes[key].saldoInicial = val;
-        setData(newData);
-        saveData(newData);
     };
 
     const salvarLancamento = () => {
@@ -178,13 +174,13 @@ export function TabProvisoes({ data, setData, saveData }: TabProvisoesProps) {
     return (
         <div className="fade-in mb-10">
             {/* Header com info e botão */}
-            <div className="mb-6 flex flex-col md:flex-row justify-between items-center gap-4 bg-slate-50/50 p-6 rounded-3xl border border-slate-100">
+            <div className="mb-8 flex flex-col md:flex-row justify-between items-center gap-4 bg-slate-50/50 p-6 rounded-3xl border border-slate-100">
                 <div className="flex items-start gap-4">
                     <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-blue-500 shadow-sm shrink-0">
                         <HandCoins size={24} />
                     </div>
                     <div>
-                        <h2 className="text-base md:text-lg font-black text-slate-800 uppercase tracking-widest italic">Reservas</h2>
+                        <h2 className="text-base md:text-base font-black text-slate-800 uppercase tracking-widest italic">Reservas</h2>
                         <p className="text-xs font-black text-slate-400 uppercase tracking-widest mt-1">Gerencie seus fundos de longo prazo</p>
                     </div>
                 </div>
@@ -242,19 +238,30 @@ export function TabProvisoes({ data, setData, saveData }: TabProvisoesProps) {
                             <div className="p-5 md:p-6 flex flex-col lg:flex-row gap-5 lg:gap-6 lg:items-center relative z-10 w-full">
                                 {/* Title / Name */}
                                 <div className="flex-grow min-w-0 lg:w-[22%] xl:w-1/4 shrink-0 pr-8 lg:pr-0">
-                                    <input 
-                                        className="text-lg md:text-2xl font-black text-slate-800 bg-transparent border-none outline-none w-full focus:ring-0 p-0 mb-1 leading-tight uppercase tracking-tight"
-                                        value={title}
-                                        onChange={(e) => updateProvisionField(key, 'title', e.target.value)}
-                                        placeholder="Nome"
-                                    />
-                                    <div className="flex flex-wrap gap-1.5 h-4">
-                                        {metaStr && (
-                                            <span className="text-[10px] font-black text-indigo-500 bg-indigo-50/80 px-2 py-0.5 rounded-md uppercase tracking-widest leading-none whitespace-nowrap">{metaStr}</span>
-                                        )}
-                                        {prazo && (
-                                            <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest italic leading-none">{prazo}</span>
-                                        )}
+                                    <div className="flex flex-col gap-1">
+                                        <input 
+                                            className="text-base md:text-xl font-black text-slate-800 bg-transparent border-none outline-none w-full focus:ring-2 focus:ring-indigo-100 rounded-lg p-1 -m-1 mb-0.5 leading-tight uppercase tracking-tight hover:bg-slate-50 transition-colors"
+                                            value={prov.title || ''}
+                                            onChange={(e) => updateProvisionField(key, 'title', e.target.value)}
+                                            placeholder="NOME DA RESERVA"
+                                        />
+                                        <input 
+                                            className="text-[10px] font-black text-indigo-500 bg-indigo-50/50 hover:bg-indigo-100/50 px-2 py-0.5 rounded-md uppercase tracking-widest leading-none outline-none focus:ring-2 focus:ring-indigo-200 transition-colors placeholder:text-indigo-300"
+                                            value={prov.meta || ''}
+                                            onChange={(e) => updateProvisionField(key, 'meta', e.target.value)}
+                                            placeholder="DESCRIÇÃO"
+                                        />
+                                    </div>
+                                    <div className="mt-2 flex items-center gap-2">
+                                        <div className="flex flex-col">
+                                            <span className="text-[9px] font-black text-slate-300 uppercase tracking-widest mb-0.5">Meta Final em:</span>
+                                            <input 
+                                                className="text-[11px] font-black text-indigo-600 bg-transparent border-none outline-none focus:ring-2 focus:ring-indigo-50 rounded-lg p-1 -m-1 uppercase tracking-tight hover:bg-slate-50 transition-colors w-24"
+                                                value={prov.dataFinal || ''}
+                                                onChange={(e) => updateProvisionField(key, 'dataFinal', e.target.value)}
+                                                placeholder="MM/AAAA"
+                                            />
+                                        </div>
                                     </div>
                                 </div>
 
@@ -263,14 +270,14 @@ export function TabProvisoes({ data, setData, saveData }: TabProvisoesProps) {
                                     <div className="flex justify-between items-end mb-1">
                                         <div className="flex flex-col">
                                             <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5 leading-none">Saldo Atual</span>
-                                            <span className={`text-xl font-black tracking-tight mt-0.5 leading-none ${saldoFinal >= 0 ? 'text-indigo-600' : 'text-rose-500'}`}>
+                                            <span className={`text-lg font-black tracking-tight mt-0.5 leading-none ${saldoFinal >= 0 ? 'text-indigo-600' : 'text-rose-500'}`}>
                                                 {fmt(saldoFinal)}
                                             </span>
                                         </div>
                                         <div className="flex flex-col text-right">
-                                            <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-0.5 leading-none">Sua Meta</span>
+                                            <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-0.5 leading-none">Sua Meta Final</span>
                                             <CurrencyInput 
-                                                className="bg-transparent border-none text-right text-sm font-black text-slate-500 p-0 w-28 outline-none focus:text-indigo-600 mt-0.5 leading-none"
+                                                className="bg-slate-50 border border-slate-100 hover:bg-white text-right text-sm font-black text-slate-800 p-1 px-2 rounded-lg w-32 outline-none focus:ring-2 focus:ring-indigo-100 mt-0.5 transition-all"
                                                 value={objetivo}
                                                 onChangeValue={(val) => updateProvisionNumeric(key, 'objetivo', val)}
                                             />
@@ -294,41 +301,48 @@ export function TabProvisoes({ data, setData, saveData }: TabProvisoesProps) {
                                     </div>
                                 </div>
 
-                                {/* Saldo Inicial */}
-                                <div className="flex flex-col lg:w-24 shrink-0">
-                                    <span className="text-[9px] font-black text-slate-300 uppercase tracking-widest mb-1">Saldo Inicial</span>
+                                {/* Meta Mensal */}
+                                <div className="flex flex-col lg:w-32 shrink-0">
+                                    <span className="text-[9px] font-black text-slate-300 uppercase tracking-widest mb-1">Aporte Mensal</span>
                                     <CurrencyInput 
-                                        className="bg-slate-50 border border-slate-100 text-slate-600 text-right text-[11px] font-black px-2 py-1.5 w-full rounded-lg outline-none focus:bg-white focus:ring-2 focus:ring-indigo-100 transition-all"
+                                        className="bg-emerald-50/50 border border-emerald-100 text-emerald-600 text-right text-[11px] font-black px-2 py-1.5 w-full rounded-lg outline-none focus:bg-white focus:ring-2 focus:ring-emerald-100 transition-all shadow-sm"
+                                        value={prov.metaMensal || 0}
+                                        onChangeValue={(val) => updateProvisionNumeric(key, 'metaMensal', val)}
+                                    />
+                                    {entrada >= (prov.metaMensal || 0) && (prov.metaMensal || 0) > 0 && (
+                                        <div className="flex items-center justify-end gap-1 mt-1">
+                                            <CheckCircle2 size={10} className="text-emerald-500" />
+                                            <span className="text-[8px] font-black text-emerald-500 uppercase tracking-widest">Batida</span>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Saldo Inicial */}
+                                <div className="flex flex-col lg:w-28 shrink-0">
+                                    <span className="text-[9px] font-black text-slate-300 uppercase tracking-widest mb-1">Saldo em Caixa</span>
+                                    <CurrencyInput 
+                                        className="bg-slate-50 border border-slate-100 text-slate-600 text-right text-[11px] font-black px-2 py-1.5 w-full rounded-lg outline-none focus:bg-white focus:ring-2 focus:ring-indigo-100 transition-all shadow-sm"
                                         value={saldoIni}
-                                        onChangeValue={(val) => updateSaldoInicial(key, val)}
+                                        onChangeValue={(val) => updateProvisionNumeric(key, 'saldoInicial', val)}
                                     />
                                 </div>
 
                                 {/* ACTION BUTTONS */}
-                                <div className="flex gap-2 lg:w-[220px] shrink-0 mt-2 lg:mt-0">
+                                <div className="flex gap-2 lg:w-[120px] shrink-0 mt-2 lg:mt-0">
                                     <button 
                                         onClick={() => setModalInfo({ open: true, key: key, title: title, desc: '', val: entrada.toString(), type: 'entrada' })}
-                                        className="flex-1 h-11 bg-white text-slate-600 rounded-xl font-black text-[11px] uppercase tracking-widest hover:bg-slate-50 transition-all flex items-center justify-center gap-1.5 active:scale-95 border border-slate-200 shadow-sm shrink-0"
+                                        className="flex-1 h-11 bg-indigo-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-indigo-700 transition-all flex items-center justify-center gap-1.5 active:scale-95 shadow-lg shadow-indigo-100 shrink-0"
                                     >
-                                        <Plus size={14} className="text-indigo-500" /> DEPOSITO
-                                    </button>
-                                    <button 
-                                        onClick={() => setModalInfo({ open: true, key: key, title: title, desc: '', val: '', type: 'saida' })}
-                                        className="flex-1 h-11 bg-white text-slate-600 rounded-xl font-black text-[11px] uppercase tracking-widest hover:bg-slate-50 transition-all flex items-center justify-center gap-1.5 active:scale-95 border border-slate-200 shadow-sm shrink-0"
-                                    >
-                                        <ArrowUpRight size={14} className="text-rose-500" /> RESGATE
+                                        <Plus size={14} /> APORTE
                                     </button>
                                 </div>
 
                                 {/* HISTORY & DELETE */}
                                 <div className="flex gap-2 mt-2 lg:mt-0 w-full lg:w-auto lg:shrink-0 ml-auto items-center justify-end">
-                                    {totalGastos > 0 && expandedKeys[key] === undefined && (
-                                        <span className="text-[10px] font-black text-rose-400 lg:hidden">-{fmt(totalGastos)} resgatado</span>
-                                    )}
                                     <button 
                                         onClick={() => toggleExpand(key)}
-                                        className="flex items-center justify-center lg:w-11 lg:h-11 h-10 w-10 bg-slate-50 text-slate-400 rounded-xl hover:bg-slate-100 transition-all ml-auto lg:ml-0"
-                                        title="Extrato Detalhado"
+                                        className={`flex items-center justify-center lg:w-11 lg:h-11 h-10 w-10 rounded-xl transition-all ml-auto lg:ml-0 ${expandedKeys[key] ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-100' : 'bg-slate-50 text-slate-400 hover:bg-slate-100'}`}
+                                        title="Painel de Planejamento"
                                     >
                                         <div className={`transition-transform duration-300 ${expandedKeys[key] ? 'rotate-180' : ''}`}>
                                             <ChevronDown size={18} />
@@ -336,7 +350,7 @@ export function TabProvisoes({ data, setData, saveData }: TabProvisoesProps) {
                                     </button>
                                     <button 
                                         onClick={() => removeProvision(key)}
-                                        className="absolute top-5 right-5 lg:relative lg:top-0 lg:right-0 flex items-center justify-center lg:w-11 lg:h-11 h-10 w-10 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all"
+                                        className="flex items-center justify-center lg:w-11 lg:h-11 h-10 w-10 text-slate-200 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all"
                                         title="Excluir Reserva"
                                     >
                                         <Trash2 size={16} />
@@ -346,30 +360,91 @@ export function TabProvisoes({ data, setData, saveData }: TabProvisoesProps) {
 
                             {/* COLLAPSIBLE DETAILS */}
                             {expandedKeys[key] && (
-                                <div className="border-t border-slate-100 bg-slate-50/50 p-5 md:p-6 w-full animate-in slide-in-from-top-2 duration-300">
-                                    <h5 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Extrato Detalhado</h5>
-                                    <div className="space-y-2 max-h-60 overflow-y-auto pr-1 scrollbar-thin">
-                                        {gastosArray.length === 0 ? (
-                                            <div className="py-6 text-center border border-dashed border-slate-200 rounded-2xl w-full">
-                                                <p className="text-xs font-black text-slate-400 uppercase tracking-widest italic">Nenhum resgate registrado</p>
+                                <div className="border-t border-slate-100 bg-slate-50/50 p-5 md:p-8 w-full animate-in slide-in-from-top-2 duration-300">
+                                    <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+                                        <div>
+                                            <div className="flex items-center justify-between mb-4">
+                                                <h5 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Visão Geral do Objetivo</h5>
+                                                <span className="text-[10px] font-black text-indigo-500 bg-indigo-50 px-2 py-0.5 rounded-md uppercase tracking-widest">Saldo Atual: {fmt(saldoFinal)}</span>
                                             </div>
-                                        ) : (
-                                            gastosArray.map(g => (
-                                                <div key={g.id} className="flex flex-wrap md:flex-nowrap items-center justify-between p-3 px-5 bg-white rounded-2xl hover:bg-slate-50 border border-slate-100 transition-all shrink-0">
-                                                    <p className="text-[12.5px] md:text-[13.5px] text-slate-600 flex-grow pr-4 leading-tight tracking-tight">{g.d}</p>
-                                                    <div className="flex items-center gap-4 shrink-0">
-                                                        <span className="text-[12.5px] md:text-[13.5px] text-rose-500 shrink-0 tracking-tight">-{fmt(g.v)}</span>
-                                                        <button 
-                                                            onClick={() => removerGasto(key, g.id)}
-                                                            className="text-slate-300 hover:text-rose-500 transition-all shrink-0 h-8 w-8 flex items-center justify-center rounded-lg hover:bg-rose-50"
-                                                            title="Remover Gasto"
-                                                        >
-                                                            <Trash2 size={16} />
-                                                        </button>
+                                            
+                                            <div className="bg-white rounded-[2rem] border border-slate-100 p-8 flex flex-col items-center justify-center text-center shadow-sm">
+                                                <div className="w-20 h-20 bg-indigo-50 rounded-full flex items-center justify-center mb-4 relative">
+                                                    <Target size={32} className="text-indigo-500" />
+                                                    <div className="absolute inset-0 rounded-full border-4 border-indigo-100 border-t-indigo-500 animate-[spin_3s_linear_infinite]" style={{ clipPath: `conic-gradient(from 0deg, transparent 0%, transparent ${100 - Math.min(100, (saldoFinal/objetivo)*100)}%, #6366f1 0%)` }}></div>
+                                                </div>
+                                                <h3 className="text-xl font-black text-slate-800 uppercase tracking-tight mb-2">
+                                                    {objetivo > 0 ? `${Math.min(100, (saldoFinal / objetivo) * 100).toFixed(1)}% Completo` : 'Defina uma Meta'}
+                                                </h3>
+                                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest leading-relaxed max-w-[200px]">
+                                                    Você está acumulando para atingir <span className="text-indigo-600 font-extrabold">{fmt(objetivo)}</span> em <span className="text-indigo-600 font-extrabold">{prov.dataFinal || '--'}</span>.
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        {/* Planejamento de Metas Mensais */}
+                                        <div className="bg-white rounded-[2.5rem] border border-slate-100 p-6 md:p-8 shadow-sm">
+                                            <div className="flex items-center justify-between mb-6">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="p-2 bg-indigo-50 text-indigo-500 rounded-xl">
+                                                        <Target size={18} />
+                                                    </div>
+                                                    <div>
+                                                        <h5 className="text-[11px] font-black text-slate-800 uppercase tracking-[0.2em]">Metas Mensais (Saldo Alvo)</h5>
+                                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-0.5">Planeje seu acumulado até Dez/2026</p>
                                                     </div>
                                                 </div>
-                                            ))
-                                        )}
+                                            </div>
+                                            
+                                            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 gap-3">
+                                                {[
+                                                    { m: 'Mai/26', key: 'mai' },
+                                                    { m: 'Jun/26', key: 'jun' },
+                                                    { m: 'Jul/26', key: 'jul' },
+                                                    { m: 'Ago/26', key: 'ago' },
+                                                    { m: 'Set/26', key: 'set' },
+                                                    { m: 'Out/26', key: 'out' },
+                                                    { m: 'Nov/26', key: 'nov' },
+                                                    { m: 'Dez/26', key: 'dez' },
+                                                ].map((month) => {
+                                                    const targetVal = prov.metasMensais?.[month.key] || 0;
+                                                    const isPassed = month.key === 'mai'; // Simplificação
+                                                    const currentProj = month.key === 'mai' ? saldoFinal : saldoFinal + (prov.metaMensal || 0) * (['mai','jun','jul','ago','set','out','nov','dez'].indexOf(month.key));
+                                                    
+                                                    return (
+                                                        <div key={month.key} className={`p-4 rounded-3xl border transition-all ${targetVal > 0 ? (currentProj >= targetVal ? 'bg-emerald-50/30 border-emerald-100/50' : 'bg-slate-50 border-slate-100') : 'bg-slate-50/50 border-slate-100/30'}`}>
+                                                            <div className="flex items-center justify-between mb-2">
+                                                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{month.m}</span>
+                                                                {targetVal > 0 && currentProj >= targetVal && <CheckCircle2 size={12} className="text-emerald-500" />}
+                                                            </div>
+                                                            <CurrencyInput 
+                                                                className="w-full bg-white border border-slate-100 text-[11px] font-black text-slate-800 p-1.5 rounded-lg text-right outline-none focus:ring-2 focus:ring-indigo-100 transition-all shadow-sm"
+                                                                value={targetVal}
+                                                                placeholder="Meta R$"
+                                                                onChangeValue={(val) => updateMonthlyGoal(key, month.key, val)}
+                                                            />
+                                                            <div className="mt-2 flex flex-col">
+                                                                <span className="text-[8px] font-black text-slate-300 uppercase tracking-widest leading-none mb-1">Previsão</span>
+                                                                <span className={`text-[10px] font-black leading-none ${currentProj >= targetVal && targetVal > 0 ? 'text-emerald-500' : 'text-indigo-400'}`}>{fmt(currentProj)}</span>
+                                                            </div>
+                                                        </div>
+                                                    )
+                                                })}
+                                            </div>
+
+                                            <div className="mt-8 p-4 bg-slate-50/50 rounded-2xl border border-slate-100 flex items-center gap-4">
+                                                <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-indigo-500 shadow-sm shrink-0">
+                                                    <TrendingUp size={20} />
+                                                </div>
+                                                <p className="text-[11px] font-bold text-slate-600 leading-snug">
+                                                    {objetivo > 0 && saldoFinal < objetivo && (prov.metaMensal || 0) > 0 ? (
+                                                        <>A meta final de <span className="text-indigo-600 font-extrabold">{fmt(objetivo)}</span> será atingida em aproximadamente <span className="bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded font-black">{Math.ceil((objetivo - saldoFinal) / (prov.metaMensal || 0))} meses</span>.</>
+                                                    ) : (
+                                                        <>Os valores acima são projetados com base no <span className="font-black">Aporte Mensal ({fmt(prov.metaMensal || 0)})</span>. Ajuste suas metas para comparar.</>
+                                                    )}
+                                                </p>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             )}
@@ -379,7 +454,7 @@ export function TabProvisoes({ data, setData, saveData }: TabProvisoesProps) {
                 
                 <div className="flex items-center justify-between bg-emerald-500 text-white rounded-2xl p-5 md:p-6 mt-4 shadow-lg shadow-emerald-200/50">
                     <span className="text-xs md:text-sm font-black uppercase tracking-widest">Saldo Total Acumulado</span>
-                    <span className="text-xl md:text-2xl font-black tracking-tighter">
+                    <span className="text-lg md:text-xl font-black tracking-tighter">
                         {fmt(provisionKeys.reduce((acc, key) => {
                             const prov = data.provisoes[key];
                             const metaLegacy = provisaoMetaData.find(p => p.key === key);
@@ -405,7 +480,7 @@ export function TabProvisoes({ data, setData, saveData }: TabProvisoesProps) {
                     <div className="bg-white p-6 md:p-8 rounded-[2.5rem] shadow-2xl max-w-sm w-full border border-slate-100">
                         <div className="flex justify-between items-center mb-6">
                             <div>
-                                <h3 className="text-sm md:text-lg font-black text-slate-800 uppercase tracking-widest italic">
+                                <h3 className="text-sm md:text-base font-black text-slate-800 uppercase tracking-widest italic">
                                     {modalInfo.type === 'saida' ? 'Registrar Saída' : 'Ajustar Depósito'}
                                 </h3>
                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">{modalInfo.title}</p>
@@ -437,7 +512,7 @@ export function TabProvisoes({ data, setData, saveData }: TabProvisoesProps) {
                                     inputMode="decimal" 
                                     value={modalInfo.val} 
                                     onChangeValue={(val) => setModalInfo({...modalInfo, val: val.toString()})} 
-                                    className={`w-full bg-slate-50 border border-slate-100 p-4 rounded-xl text-lg font-black text-right outline-none focus:ring-4 transition-all ${modalInfo.type === 'saida' ? 'text-rose-500 focus:ring-rose-100' : 'text-emerald-600 focus:ring-emerald-100'}`} 
+                                    className={`w-full bg-slate-50 border border-slate-100 p-4 rounded-xl text-base font-black text-right outline-none focus:ring-4 transition-all ${modalInfo.type === 'saida' ? 'text-rose-500 focus:ring-rose-100' : 'text-emerald-600 focus:ring-emerald-100'}`} 
                                     placeholder="R$ 0,00" 
                                 />
                             </div>

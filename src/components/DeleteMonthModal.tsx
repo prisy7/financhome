@@ -55,7 +55,7 @@ export function DeleteMonthModal({ isOpen, onClose, onConfirm, monthName, monthI
                                 <Trash2 size={32} />
                             </div>
                             
-                            <h3 className="text-xl font-black text-slate-800 text-center uppercase tracking-tight mb-2">
+                            <h3 className="text-lg font-black text-slate-800 text-center uppercase tracking-tight mb-2">
                                 Apagar Mês Inteiro?
                             </h3>
                             

@@ -129,6 +129,5 @@ export function formatFullDate(monthName: string | undefined, day: number | stri
     if (monthIndex === undefined) return `Dia ${day}`;
     
     const m = String(monthIndex + 1).padStart(2, '0');
-    const y = parts[1]?.slice(-2) || '00';
-    return `${String(day).padStart(2, '0')}/${m}/${y}`;
+    return `${String(day).padStart(2, '0')}/${m}`;
 }

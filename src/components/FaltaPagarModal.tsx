@@ -66,7 +66,7 @@ export function FaltaPagarModal({ data, onClose }: FaltaPagarModalProps) {
                                     <div className="flex items-center gap-6 mb-6 sticky top-0 bg-transparent z-10">
                                         <div className={`w-12 h-12 rounded-2xl flex flex-col items-center justify-center shadow-md border ${dia === 'A Definir' ? 'bg-slate-200 border-slate-300 text-slate-600' : 'bg-white border-rose-100 text-rose-600 shadow-rose-100'}`}>
                                             <span className="text-[8px] font-black uppercase leading-none mb-1 tracking-widest">{dia === 'A Definir' ? 'S/' : 'Dia'}</span>
-                                            <span className="text-xl font-black leading-none">{dia === 'A Definir' ? '?' : dia}</span>
+                                            <span className="text-lg font-black leading-none">{dia === 'A Definir' ? '?' : dia}</span>
                                         </div>
                                         <div className="flex-grow">
                                             <div className="h-px bg-slate-200 w-full mb-1"></div>

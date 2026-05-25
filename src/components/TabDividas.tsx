@@ -92,13 +92,13 @@ export function TabDividas({ data, setData, saveData }: TabDividasProps) {
                         <CreditCard size={20} md:size={28} className="text-rose-400" />
                     </div>
                     <div>
-                        <h3 className="text-base md:text-lg font-black text-slate-800 uppercase tracking-widest italic">Dívidas & Parcelas</h3>
+                        <h3 className="text-base md:text-base font-black text-slate-800 uppercase tracking-widest italic">Dívidas & Parcelas</h3>
                         <p className="text-sm font-black text-rose-300 uppercase tracking-widest leading-none">Controle o que ainda falta pagar</p>
                     </div>
                 </div>
                 <div className="w-full md:w-auto text-center md:text-right bg-white p-2.5 px-4 md:p-3 md:px-6 rounded-xl md:rounded-2xl border border-rose-50 shadow-sm">
                     <p className="text-xs md:text-sm font-black text-slate-400 uppercase tracking-widest">TOTAL NO MÊS</p>
-                    <p className="text-base md:text-lg font-black text-rose-500 tracking-tight leading-none">{fmt(totalMes)}</p>
+                    <p className="text-base md:text-base font-black text-rose-500 tracking-tight leading-none">{fmt(totalMes)}</p>
                 </div>
             </div>
 
@@ -150,7 +150,7 @@ export function TabDividas({ data, setData, saveData }: TabDividasProps) {
 
             <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
                 <div className="px-5 md:px-8 py-4 md:py-5 bg-slate-50/50 border-b border-slate-50 flex justify-between items-center">
-                    <h3 className="text-base md:text-lg font-black text-slate-800 uppercase tracking-widest italic flex items-center gap-2 md:gap-3">
+                    <h3 className="text-base md:text-base font-black text-slate-800 uppercase tracking-widest italic flex items-center gap-2 md:gap-3">
                         <div className="w-2 h-2 bg-rose-400 rounded-full animate-pulse"></div>
                         Minhas Dívidas
                     </h3>

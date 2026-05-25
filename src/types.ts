@@ -29,7 +29,10 @@ export interface Provisao {
     title?: string;
     meta?: string;
     objetivo?: number;
+    metaMensal?: number;
+    metasMensais?: Record<string, number>;
     prazo?: string;
+    dataFinal?: string;
     saldoInicial: number;
     gastos: ProvisaoGasto[];
     entradaId?: number;

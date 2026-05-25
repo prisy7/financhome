@@ -156,7 +156,7 @@ export default function App() {
                   <div className="w-16 h-16 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center mb-6">
                       <Wallet size={32} />
                   </div>
-                  <h1 className="text-2xl font-black tracking-tight text-slate-800 mb-2">Controle Financeiro</h1>
+                  <h1 className="text-xl font-black tracking-tight text-slate-800 mb-2">Controle Financeiro</h1>
                   <p className="text-sm text-slate-500 mb-8">
                       Faça login para salvar seus lançamentos na nuvem com segurança.
                   </p>
@@ -554,7 +554,7 @@ export default function App() {
                     <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
                         <RefreshCw size={24} />
                     </div>
-                    <h3 className="text-xl font-black text-slate-800">Sincronização Familiar</h3>
+                    <h3 className="text-lg font-black text-slate-800">Sincronização Familiar</h3>
                     <p className="text-xs text-slate-500 mt-2 leading-relaxed">
                         Para compartilhar os dados entre dispositivos de pessoas diferentes, use o mesmo código abaixo em todos os aparelhos.
                     </p>
@@ -608,7 +608,7 @@ export default function App() {
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
             <div className="bg-white p-6 rounded-xl shadow-2xl max-w-sm w-full border border-slate-100">
                 <div className="text-center mb-4">
-                    <h3 className="text-lg font-bold text-slate-800">Adicionar Novo Mês</h3>
+                    <h3 className="text-base font-bold text-slate-800">Adicionar Novo Mês</h3>
                     <p className="text-xs text-slate-500 mt-1">Escolha o mês e o ano.</p>
                 </div>
                 <div className="grid grid-cols-2 gap-4 mb-4">
@@ -851,6 +851,7 @@ export default function App() {
                         data={data} 
                         setData={setData} 
                         saveData={saveData} 
+                        monthName={availableMonths.find(m => m.id === currentMonthId)?.name || ''} 
                         onAdd={() => {
                             setLancamentoModalType('gastos');
                             setShowLancamentoModal(true);

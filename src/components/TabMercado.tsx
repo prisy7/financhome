@@ -8,13 +8,17 @@ interface TabMercadoProps {
     data: OrcamentoData | null;
     setData: (data: OrcamentoData) => void;
     saveData: (data: OrcamentoData) => void;
+    monthName?: string;
     onAdd?: () => void;
 }
 
-export function TabMercado({ data, setData, saveData, onAdd }: TabMercadoProps) {
+export function TabMercado({ data, setData, saveData, monthName, onAdd }: TabMercadoProps) {
     if (!data) return null;
 
-    const { metaSemanal, gastosReais, overflowAnterior, totalEstouradoMesAnterior } = data.mercado;
+    const metaSemanal = data.mercado?.metaSemanal || 0;
+    const gastosReais = data.mercado?.gastosReais || [];
+    const overflowAnterior = data.mercado?.overflowAnterior || 0;
+    const totalEstouradoMesAnterior = data.mercado?.totalEstouradoMesAnterior || 0;
     const totalPrevisto = round2(metaSemanal * gastosReais.length);
     const totalReal = round2(gastosReais.reduce((a, b) => a + b, 0));
     const totalExtraAcumulado = round2((overflowAnterior || 0) + (totalReal - totalPrevisto));
@@ -61,6 +65,17 @@ export function TabMercado({ data, setData, saveData, onAdd }: TabMercadoProps) 
         saveData(newData);
     };
 
+    const mesNumero = (() => {
+        if (!monthName) return '--';
+        const meses: Record<string, string> = {
+            'janeiro':'01','fevereiro':'02','março':'03','abril':'04',
+            'maio':'05','junho':'06','julho':'07','agosto':'08',
+            'setembro':'09','outubro':'10','novembro':'11','dezembro':'12'
+        };
+        const nomeMes = monthName.toLowerCase().split(' ')[0];
+        return meses[nomeMes] || '--';
+    })();
+
     return (
         <div className="fade-in mb-10 space-y-4 md:space-y-6">
             <div className="mb-6 flex flex-col md:flex-row justify-between items-center gap-4 bg-slate-50/50 p-6 rounded-3xl border border-slate-100">
@@ -69,7 +84,7 @@ export function TabMercado({ data, setData, saveData, onAdd }: TabMercadoProps) 
                         <Tag size={24} />
                     </div>
                     <div>
-                        <h2 className="text-base md:text-lg font-black text-slate-800 uppercase tracking-widest italic">Supermercado</h2>
+                        <h2 className="text-base md:text-base font-black text-slate-800 uppercase tracking-widest italic">Supermercado</h2>
                         <p className="text-xs font-black text-slate-400 uppercase tracking-widest mt-1">Controle de gastos semanais</p>
                     </div>
                 </div>
@@ -133,15 +148,15 @@ export function TabMercado({ data, setData, saveData, onAdd }: TabMercadoProps) 
                 
                 <div className="text-center md:text-right bg-slate-50 p-4 px-6 md:p-5 md:px-8 rounded-2xl border border-slate-100 w-full md:w-auto">
                     <p className="text-xs md:text-sm font-black text-slate-400 uppercase tracking-widest mb-1">SALDO DO MÊS</p>
-                    <p className={`text-lg md:text-xl font-black tracking-tight leading-none ${saldo >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>{fmt(saldo)}</p>
+                    <p className={`text-base md:text-lg font-black tracking-tight leading-none ${saldo >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>{fmt(saldo)}</p>
                     <p className="text-xs md:text-sm font-black text-slate-300 uppercase tracking-widest mt-2 md:mt-2">Gasto Real: <span className="text-slate-500 font-black">{fmt(totalReal)}</span></p>
                 </div>
             </div>
             
             <div className="flex flex-col lg:flex-row gap-6 items-start">
                 {/* Left: Weekly Cards */}
-                <div className="w-full lg:w-[440px] space-y-4 shrink-0">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="w-full lg:w-auto lg:flex-1 space-y-4 shrink-0">
+                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-2 gap-3">
                         {gastosReais.map((gasto, i) => {
                             const currentMeta = dynamicMetas[i];
                             const diff = currentMeta - gasto;
@@ -216,11 +231,15 @@ export function TabMercado({ data, setData, saveData, onAdd }: TabMercadoProps) 
                                     return ((a as any).timestamp || 0) - ((b as any).timestamp || 0);
                                 })
                                 .map((item, idx) => (
-                                    <div key={item.id} className="px-3 py-2 md:px-4 md:py-2.5 flex items-start md:items-center justify-between hover:bg-slate-50/50 transition-colors group gap-4">
-                                        <div className="flex items-start md:items-center gap-3 min-w-0 flex-1">
-                                            <div className="w-8 h-8 rounded bg-slate-50 text-slate-400 flex items-center justify-center shrink-0 border border-slate-100/50 mt-0.5 md:mt-0">
-                                                <span className="text-[11px] leading-none font-black">{item.vencimento || '--'}</span>
+                                    <div key={item.id} className="px-4 py-3 flex items-center justify-between hover:bg-slate-50/50 transition-colors group gap-4 border-b border-slate-50">
+                                        <div className="flex items-center gap-4 min-w-0 flex-1">
+                                            {/* DATA */}
+                                            <div className="w-32 shrink-0 leading-none">
+                                                <span className="text-[13px] md:text-[14px] font-black text-slate-600 uppercase tracking-widest leading-none">
+                                                    {item.vencimento ? `${String(item.vencimento).padStart(2,'0')}/${mesNumero}` : '--'}
+                                                </span>
                                             </div>
+
                                             <div className="min-w-0 flex flex-col items-start gap-1.5 flex-1">
                                                 {(() => {
                                                     const match = item.d.match(/^\[(.*?)\]\s*(.*)$/);
@@ -232,19 +251,19 @@ export function TabMercado({ data, setData, saveData, onAdd }: TabMercadoProps) 
                                                                 <span className="inline-block px-1.5 py-0.5 rounded bg-blue-50 text-blue-600 text-[9px] md:text-[10px] font-black uppercase tracking-widest break-words whitespace-normal max-w-full leading-tight">
                                                                     {category}
                                                                 </span>
-                                                                <p className="text-[12.5px] md:text-[13.5px] font-bold text-slate-700 uppercase tracking-tight leading-tight whitespace-normal break-words">{desc}</p>
+                                                                <p className="font-bold text-slate-800 text-sm whitespace-normal break-words">{desc}</p>
                                                             </>
                                                         );
                                                     }
-                                                    return <p className="text-[12.5px] md:text-[13.5px] font-bold text-slate-700 uppercase tracking-tight leading-tight whitespace-normal break-words">{item.d}</p>;
+                                                    return <p className="font-bold text-slate-800 text-sm whitespace-normal break-words">{item.d}</p>;
                                                 })()}
                                                 <span className="px-1.5 py-0.5 rounded-[3px] bg-indigo-50 text-indigo-500 text-[9px] font-black uppercase tracking-widest leading-none">
                                                     {(item as any).semana ? `S${(item as any).semana}` : 'Merc'}
                                                 </span>
                                             </div>
                                         </div>
-                                        <div className="flex flex-col md:flex-row items-end md:items-center gap-2 md:gap-3 shrink-0">
-                                            <p className="text-[12.5px] md:text-[13.5px] font-black text-slate-800 tracking-tight">{fmt(item.v)}</p>
+                                        <div className="flex items-center gap-3 w-40 shrink-0 justify-end">
+                                            <p className="font-black text-slate-800 text-sm text-right shrink-0">{fmt(item.v)}</p>
                                             <button 
                                                 onClick={() => {
                                                         if (window.confirm(`Deseja realmente excluir "${item.d}"?`)) {

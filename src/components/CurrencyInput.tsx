@@ -69,7 +69,8 @@ export function CurrencyInput({
             placeholder={placeholder}
             disabled={disabled}
             autoFocus={autoFocus}
-            inputMode="text"
+            inputMode="decimal"
+            pattern="[0-9]*[.,]?[0-9]*"
             {...props}
         />
     );

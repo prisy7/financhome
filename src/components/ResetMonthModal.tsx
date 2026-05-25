@@ -52,7 +52,7 @@ export function ResetMonthModal({ isOpen, onClose, onConfirm, monthName }: Reset
                                 <AlertTriangle size={32} />
                             </div>
                             
-                            <h3 className="text-xl font-black text-slate-800 text-center uppercase tracking-tight mb-2">
+                            <h3 className="text-lg font-black text-slate-800 text-center uppercase tracking-tight mb-2">
                                 Resetar Mês Inteiro?
                             </h3>
                             
