@@ -98,7 +98,7 @@ export function TabDividas({ data, setData, saveData }: TabDividasProps) {
                 </div>
                 <div className="w-full md:w-auto text-center md:text-right bg-white p-2.5 px-4 md:p-3 md:px-6 rounded-xl md:rounded-2xl border border-rose-50 shadow-sm">
                     <p className="text-xs md:text-sm font-black text-slate-400 uppercase tracking-widest">TOTAL NO MÊS</p>
-                    <p className="text-base md:text-base font-black text-rose-500 tracking-tight leading-none">{fmt(totalMes)}</p>
+                    <p className="text-base md:text-base font-bold text-rose-500 tracking-tight leading-none">{fmt(totalMes)}</p>
                 </div>
             </div>
 
@@ -123,21 +123,21 @@ export function TabDividas({ data, setData, saveData }: TabDividasProps) {
                             onChange={e => {
                                 setVencimento(e.target.value);
                             }} 
-                            className="w-full bg-slate-50 border border-slate-100 h-10 md:h-12 px-2 md:px-3 rounded-xl text-sm font-black text-slate-700 outline-none focus:ring-4 focus:ring-blue-100 transition-all" 
+                            className="w-full bg-slate-50 border border-slate-100 h-10 md:h-12 px-2 md:px-3 rounded-xl text-sm font-bold text-slate-700 outline-none focus:ring-4 focus:ring-blue-100 transition-all" 
                         />
                     </div>
                     <div className="md:col-span-2">
                         <label className="block text-sm font-black text-slate-400 uppercase tracking-widest mb-1 md:mb-2 text-right">Valor Parcela</label>
-                        <CurrencyInput inputMode="decimal" value={valor} onChangeValue={(val) => setValor(val.toString())} className="w-full bg-slate-50 border border-slate-100 h-10 md:h-12 px-3 md:px-4 rounded-xl text-sm md:text-base font-black text-slate-700 text-right outline-none focus:ring-4 focus:ring-blue-100 transition-all" placeholder="R$ 0,00" />
+                        <CurrencyInput inputMode="decimal" value={valor} onChangeValue={(val) => setValor(val.toString())} className="w-full bg-slate-50 border border-slate-100 h-10 md:h-12 px-3 md:px-4 rounded-xl text-sm md:text-base font-bold text-slate-700 text-right outline-none focus:ring-4 focus:ring-blue-100 transition-all" placeholder="R$ 0,00" />
                     </div>
                     <div className="md:col-span-3 flex gap-2 md:gap-3">
                         <div className="w-1/2">
                             <label className="block text-sm font-black text-slate-400 uppercase tracking-widest mb-1 md:mb-2 text-center">Atual</label>
-                            <input type="text" inputMode="numeric" min="1" value={parcelaAtual} onFocus={(e) => e.target.select()} onChange={e => setParcelaAtual(parseInt(e.target.value) || 1)} className="w-full bg-slate-50 border border-slate-100 h-10 md:h-12 px-2 rounded-xl text-sm md:text-base font-black text-center text-slate-700 outline-none focus:ring-4 focus:ring-blue-100 transition-all" />
+                            <input type="text" inputMode="numeric" min="1" value={parcelaAtual} onFocus={(e) => e.target.select()} onChange={e => setParcelaAtual(parseInt(e.target.value) || 1)} className="w-full bg-slate-50 border border-slate-100 h-10 md:h-12 px-2 rounded-xl text-sm md:text-base font-bold text-center text-slate-700 outline-none focus:ring-4 focus:ring-blue-100 transition-all" />
                         </div>
                         <div className="w-1/2">
                             <label className="block text-sm font-black text-slate-400 uppercase tracking-widest mb-1 md:mb-2 text-center">Total</label>
-                            <input type="text" inputMode="numeric" min="1" value={parcelas} onFocus={(e) => e.target.select()} onChange={e => setParcelas(parseInt(e.target.value) || 1)} className="w-full bg-slate-50 border border-slate-100 h-10 md:h-12 px-2 rounded-xl text-sm md:text-base font-black text-center text-slate-700 outline-none focus:ring-4 focus:ring-blue-100 transition-all" />
+                            <input type="text" inputMode="numeric" min="1" value={parcelas} onFocus={(e) => e.target.select()} onChange={e => setParcelas(parseInt(e.target.value) || 1)} className="w-full bg-slate-50 border border-slate-100 h-10 md:h-12 px-2 rounded-xl text-sm md:text-base font-bold text-center text-slate-700 outline-none focus:ring-4 focus:ring-blue-100 transition-all" />
                         </div>
                     </div>
                 </div>

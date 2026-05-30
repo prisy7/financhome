@@ -1,5 +1,5 @@
 export const STORAGE_KEY_MONTHS = 'orcamento_months_list';
-export const CURRENT_SCHEMA_VERSION = 7;
+export const CURRENT_SCHEMA_VERSION = 8;
 
 export const provisaoMetaData = [
     { key: 'natal', title: 'Reserva Natal', entradaId: 9, typeList: 'variaveis', icon: 'Gift', color: 'rose', meta: 'Reserva (10x)' },
@@ -43,7 +43,7 @@ export const defaultData = {
         {id: 9, d: 'Reserva Natal', v: 0.00, paid: false}
     ],
     gastosMes: [
-        {id: 19, d: 'Supermercado', v: 0.00, paid: false, isMercado: true},
+        {id: 19, d: 'Mercado / Feira', v: 0.00, paid: false, isMercado: true},
         {id: 201, d: 'Farmácia', v: 0, paid: false},
         {id: 230, d: 'Perfumaria', v: 0, paid: false},
         {id: 231, d: 'Presente', v: 0, paid: false},

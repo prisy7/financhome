@@ -39,6 +39,7 @@ export function LancamentoModal({ isOpen, onClose, onSave, mercado, initialType 
         { id: 'receita_principal', label: 'Receita Principal', color: 'text-emerald-700 bg-emerald-100 border-emerald-500' },
         { id: 'receita_extras', label: 'Extras', color: 'text-blue-700 bg-blue-100 border-blue-500' },
         { id: 'mercado', label: 'Mercado', icon: ShoppingCart, color: 'text-purple-700 bg-purple-100 border-purple-500' },
+        { id: 'feira', label: 'Feira', color: 'text-lime-700 bg-lime-100 border-lime-500' },
         { id: 'farmacia', label: 'Farmácia', color: 'text-rose-700 bg-rose-100 border-rose-500' },
         { id: 'perfumaria', label: 'Perfumaria', color: 'text-pink-700 bg-pink-100 border-pink-500' },
         { id: 'presente', label: 'Presente', color: 'text-orange-700 bg-orange-100 border-orange-500' },
@@ -48,7 +49,6 @@ export function LancamentoModal({ isOpen, onClose, onSave, mercado, initialType 
         { id: 'uber', label: 'Uber/99', color: 'text-emerald-700 bg-emerald-100 border-emerald-500' },
         { id: 'utilidades', label: 'Utilidades', color: 'text-zinc-700 bg-zinc-100 border-zinc-500' },
         { id: 'agua', label: 'Água', color: 'text-cyan-700 bg-cyan-100 border-cyan-500' },
-        { id: 'feira', label: 'Feira', color: 'text-lime-700 bg-lime-100 border-lime-500' },
         { id: 'ian', label: 'Ian', color: 'text-violet-700 bg-violet-100 border-violet-500' },
         { id: 'padaria', label: 'Padaria', color: 'text-yellow-700 bg-yellow-100 border-yellow-500' },
         { id: 'papelaria', label: 'Papelaria', color: 'text-teal-700 bg-teal-100 border-teal-500' },
@@ -97,9 +97,17 @@ export function LancamentoModal({ isOpen, onClose, onSave, mercado, initialType 
 
     if (!isOpen) return null;
 
-    const filteredCategorias = initialType === 'receitas' 
+    const rawFiltered = initialType === 'receitas' 
         ? categorias.filter(c => c.id.startsWith('receita_') || c.id === 'personalizado')
         : categorias.filter(c => !c.id.startsWith('receita_'));
+
+    const filteredCategorias = (() => {
+        const createBtn = rawFiltered.find(c => c.id === 'personalizado');
+        const others = rawFiltered.filter(c => c.id !== 'personalizado')
+            .sort((a, b) => a.label.localeCompare(b.label, 'pt-BR', { sensitivity: 'base' }));
+        
+        return createBtn ? [createBtn, ...others] : others;
+    })();
 
     const handleSave = () => {
         if (!selectedCat) {
@@ -123,7 +131,7 @@ export function LancamentoModal({ isOpen, onClose, onSave, mercado, initialType 
         let sysTipo: 'receitas' | 'fixas' | 'variaveis' | 'mercado' | 'gastosMes' = 'gastosMes';
         let finalSemana = semana;
 
-        if (selectedCat === 'mercado') {
+        if (selectedCat === 'mercado' || selectedCat === 'feira') {
             sysTipo = 'mercado';
             const dateObj = new Date(selectedDate + 'T12:00:00');
             const day = dateObj.getDate();
@@ -139,7 +147,7 @@ export function LancamentoModal({ isOpen, onClose, onSave, mercado, initialType 
 
         onSave({ 
             tipo: sysTipo, 
-            descricao: sysTipo === 'gastosMes' && !finalDesc.startsWith('[') ? `[${catLabel}] ${finalDesc}` : finalDesc, 
+            descricao: (sysTipo === 'gastosMes' || selectedCat === 'mercado' || selectedCat === 'feira') && !finalDesc.startsWith('[') ? `[${catLabel}] ${finalDesc}` : finalDesc, 
             valor: valorNum, 
             pago,
             semana: sysTipo === 'mercado' ? finalSemana : undefined,
@@ -287,7 +295,7 @@ export function LancamentoModal({ isOpen, onClose, onSave, mercado, initialType 
                                     type="button"
                                     onClick={() => {
                                         if (!customCat.trim()) return;
-                                        const newCatId = 'custom_' + Date.now();
+                                        const newCatId = (initialType === 'receitas' ? 'receita_' : '') + 'custom_' + Date.now();
                                         const newCat = {
                                             id: newCatId,
                                             label: customCat.trim(),

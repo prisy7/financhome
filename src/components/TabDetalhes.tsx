@@ -149,7 +149,7 @@ export function TabDetalhes({ data, setData, saveData, monthName = '', onAdd }: 
 
         if (!item && type === 'gastosMes' && [19, 241, 245].includes(id as number)) {
             const defaults: Record<number, string> = {
-                19: 'Supermercado',
+                19: 'Mercado / Feira',
                 241: 'Bilhete Único',
                 245: 'Terreiro Pri'
             };
@@ -197,7 +197,7 @@ export function TabDetalhes({ data, setData, saveData, monthName = '', onAdd }: 
 
         if (!item && type === 'gastosMes' && [19, 241, 245].includes(id as number)) {
             const defaults: Record<number, string> = {
-                19: 'Supermercado',
+                19: 'Mercado / Feira',
                 241: 'Bilhete Único',
                 245: 'Terreiro Pri'
             };
@@ -283,7 +283,7 @@ export function TabDetalhes({ data, setData, saveData, monthName = '', onAdd }: 
             const individualItems = list.filter(item => !structuralIds.includes(item.id as number));
 
             const baseItemsMap = [
-                rawStructuralItems.find(i => i.id === 19) || { id: 19, d: 'Supermercado', v: 0, paid: false, isMercado: true },
+                rawStructuralItems.find(i => i.id === 19) || { id: 19, d: 'Mercado / Feira', v: 0, paid: false, isMercado: true },
                 rawStructuralItems.find(i => i.id === 241) || { id: 241, d: 'Bilhete Único', v: 0, paid: false },
                 rawStructuralItems.find(i => i.id === 245) || { id: 245, d: 'Terreiro Pri', v: 0, paid: false },
                 ...rawStructuralItems.filter(i => ![19, 241, 245].includes(i.id as number))
@@ -331,11 +331,10 @@ export function TabDetalhes({ data, setData, saveData, monthName = '', onAdd }: 
         const isOpen = openSections[type];
         
         let iconBg = 'bg-slate-50';
-        let btnBg = 'bg-slate-400';
-        if (color === 'text-emerald-500') { iconBg = 'bg-emerald-50'; btnBg = 'bg-emerald-400'; }
-        else if (color === 'text-purple-500') { iconBg = 'bg-purple-50'; btnBg = 'bg-purple-400'; }
-        else if (color === 'text-amber-500') { iconBg = 'bg-amber-50'; btnBg = 'bg-amber-400'; }
-        else if (color === 'text-blue-500') { iconBg = 'bg-blue-50'; btnBg = 'bg-blue-400'; }
+        if (color === 'text-emerald-500') { iconBg = 'bg-emerald-50'; }
+        else if (color === 'text-purple-500') { iconBg = 'bg-purple-50'; }
+        else if (color === 'text-amber-500') { iconBg = 'bg-amber-50'; }
+        else if (color === 'text-blue-500') { iconBg = 'bg-blue-50'; }
         
         return (
             <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden flex flex-col h-full hover:shadow-md transition-all">
@@ -347,12 +346,15 @@ export function TabDetalhes({ data, setData, saveData, monthName = '', onAdd }: 
                         <div className={`${type === 'receitas' ? 'w-8 h-8 md:w-10 md:h-10' : 'w-10 h-10 md:w-12 md:h-12'} rounded-2xl flex items-center justify-center border border-slate-100 ${iconBg} ${color}`}>
                             <Icon size={type === 'receitas' ? 16 : 20} />
                         </div>
-                        <h3 className="text-[12.5px] md:text-[14.5px] font-black uppercase tracking-widest text-slate-600 italic">{title}</h3>
+                        <div className="flex flex-col">
+                            <h3 className="text-[11px] md:text-[13px] font-black uppercase tracking-widest text-slate-600 italic leading-none">{title}</h3>
+                            <div className="h-px bg-slate-200/50 w-full mt-1.5"></div>
+                        </div>
                     </div>
                     <div className="flex items-center gap-3">
                         <div className="flex flex-col items-end mr-2 md:mr-4">
                             <p className="text-[8px] font-black text-slate-400 tracking-widest uppercase mb-0.5">Total</p>
-                            <p className={`text-[12.5px] md:text-[14.5px] font-black tracking-tight leading-none ${color}`}>{fmt(finalTotalDisplay)}</p>
+                            <p className={`text-[12.5px] md:text-[14.5px] font-medium tracking-tight leading-none ${color}`}>{fmt(finalTotalDisplay)}</p>
                         </div>
                         <button 
                             onClick={(e) => { 
@@ -363,10 +365,10 @@ export function TabDetalhes({ data, setData, saveData, monthName = '', onAdd }: 
                                     handleAdd(type);
                                 }
                             }} 
-                            className={`flex items-center justify-center w-[29px] h-[29px] md:w-8 md:h-8 rounded-lg transition-all ${btnBg} text-white hover:opacity-90 active:scale-95 shadow-sm`}
+                            className={`flex items-center justify-center w-7 h-7 md:w-8 md:h-8 rounded-full transition-all ${color} hover:bg-slate-100 hover:scale-110 active:scale-95`}
                             title="Adicionar Item"
                         >
-                            <Plus size={14.5} strokeWidth={3} />
+                            <Plus size={16} strokeWidth={3} />
                         </button>
                         <div className="w-10 h-10 rounded-xl flex items-center justify-center text-slate-400 hover:bg-slate-100 transition-colors">
                             {isOpen ? <ChevronUp size={24} /> : <ChevronDown size={24} />}
@@ -605,7 +607,7 @@ export function TabDetalhes({ data, setData, saveData, monthName = '', onAdd }: 
                     </div>
                     <div>
                         <p className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Saldo Inicial</p>
-                        <p className="text-sm md:text-base font-black text-slate-700 tracking-tight leading-none mt-1">{fmt(saldoAnterior)}</p>
+                        <p className="text-sm md:text-base font-medium text-slate-700 tracking-tight leading-none mt-1">{fmt(saldoAnterior)}</p>
                     </div>
                 </div>
                 <div className="bg-white p-3 md:p-4 rounded-xl md:rounded-2xl border border-slate-100 shadow-sm flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-3">
@@ -614,7 +616,7 @@ export function TabDetalhes({ data, setData, saveData, monthName = '', onAdd }: 
                     </div>
                     <div>
                         <p className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Receitas</p>
-                        <p className="text-sm md:text-base font-black text-emerald-600 tracking-tight leading-none mt-1">
+                        <p className="text-sm md:text-base font-medium text-emerald-600 tracking-tight leading-none mt-1">
                              {fmt(totalReceitasNovasReal + resgatesReservaTotal)}
                         </p>
                     </div>
@@ -625,7 +627,7 @@ export function TabDetalhes({ data, setData, saveData, monthName = '', onAdd }: 
                     </div>
                     <div>
                         <p className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Gastos</p>
-                        <p className="text-sm md:text-base font-black text-rose-600 tracking-tight leading-none mt-1">
+                        <p className="text-sm md:text-base font-medium text-rose-600 tracking-tight leading-none mt-1">
                             {fmt(totalSaidasPurasReal)}
                             <span className="text-[9px] md:text-[10px] text-slate-400 font-bold ml-1.5 md:ml-2">/ {fmt(totalSaidasPurasPrev)}</span>
                         </p>
@@ -637,7 +639,7 @@ export function TabDetalhes({ data, setData, saveData, monthName = '', onAdd }: 
                     </div>
                     <div>
                         <p className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Saldo</p>
-                        <p className={`text-sm md:text-base font-black tracking-tight leading-none mt-1 ${saldoLiquido >= 0 ? 'text-blue-600' : 'text-rose-600'}`}>
+                        <p className={`text-sm md:text-base font-medium tracking-tight leading-none mt-1 ${saldoLiquido >= 0 ? 'text-blue-600' : 'text-rose-600'}`}>
                             {fmt(saldoLiquido)}
                             <span className="text-[9px] md:text-[10px] text-slate-400 font-bold ml-1.5 md:ml-2">/ {fmt(saldoPrevisto)} prev</span>
                         </p>

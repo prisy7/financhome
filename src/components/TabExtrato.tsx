@@ -26,6 +26,7 @@ export function TabExtrato({ data, setData, saveData, monthName }: TabExtratoPro
             'Utilidades': 'Utilid.',
             'Perfumaria': 'Perfum.',
             'Papelaria': 'Papel.',
+            'M': 'Mercado / Feira'
         };
         return abreviacoes[nome] || nome;
     };
@@ -139,12 +140,17 @@ export function TabExtrato({ data, setData, saveData, monthName }: TabExtratoPro
             };
         }),
         ...(data.gastosMes || []).map(i => ({ ...i, tipo: 'gastosMes', badge: 'Gasto do Mês', color: 'text-blue-400' })),
-        ...(data.gastosMesHistorico || []).map(i => ({ 
-            ...i, 
-            tipo: 'gastosMesHistorico', 
-            badge: (i as any).isMercado ? 'Mercado' : 'Gasto do Mês', 
-            color: (i as any).isMercado ? 'text-purple-400' : 'text-blue-400' 
-        })),
+        ...(data.gastosMesHistorico || []).map(i => {
+            const isFeira = (i.d || '').toLowerCase().includes('feira');
+            const badgeLabel = (i as any).isMercado ? (isFeira ? 'Feira' : 'Mercado') : 'Gasto do Mês';
+            const badgeColor = (i as any).isMercado ? (isFeira ? 'text-lime-500' : 'text-purple-400') : 'text-blue-400';
+            return { 
+                ...i, 
+                tipo: 'gastosMesHistorico', 
+                badge: badgeLabel, 
+                color: badgeColor 
+            };
+        }),
         ...(data.dividas || []).map(i => ({ ...i, tipo: 'dividas', badge: 'Dívida', color: 'text-rose-400' })),
         ...manualReservesList,
         ...Object.keys(data.provisoes).flatMap(key => {
@@ -174,13 +180,16 @@ export function TabExtrato({ data, setData, saveData, monthName }: TabExtratoPro
     };
 
     const getCategory = (item: any) => {
-        if (item.categoria) return item.categoria;
+        if (item.categoria) return item.categoria === 'M' ? 'Mercado / Feira' : item.categoria;
 
         const fullText = (item.d || '');
         
         // Items from gastosMes typically have [Category] prefix
         const match = fullText.match(/^\[(.*?)\]\s*(.*)$/);
-        if (match) return match[1];
+        if (match) {
+            const cat = match[1];
+            return cat === 'M' ? 'Mercado / Feira' : cat;
+        }
 
         // Recipes are prioritized
         if (item.tipo === 'receitas') return item.isSaldo ? 'Saldo' : 'Receita';
@@ -193,6 +202,7 @@ export function TabExtrato({ data, setData, saveData, monthName }: TabExtratoPro
         if (desc.includes('internet') || desc.includes('net') || desc.includes('wifi')) return 'Internet';
         if (desc.includes('aluguel') || desc.includes('condominio') || desc.includes('iptu')) return 'Moradia';
         if (desc.includes('mercado pago')) return 'Banco/Pagamento';
+        if (desc.includes('feira')) return 'Feira';
         if (desc.includes('mercado') || desc.includes('supermercado')) return 'Mercado';
         if (desc.includes('terreiro')) return 'Terreiro';
         if (desc.includes('escoteiro')) return 'Educação';
@@ -338,16 +348,42 @@ export function TabExtrato({ data, setData, saveData, monthName }: TabExtratoPro
         showToast('Lançamento removido!', 'success');
     };
 
-    const mesNumero = (() => {
-        if (!monthName) return '--';
-        const meses: Record<string, string> = {
-            'janeiro':'01','fevereiro':'02','março':'03','abril':'04',
-            'maio':'05','junho':'06','julho':'07','agosto':'08',
-            'setembro':'09','outubro':'10','novembro':'11','dezembro':'12'
+    const updateDate = (id: string | number, tipo: string, newDateStr: string) => {
+        const _day = parseInt(newDateStr, 10);
+        if (isNaN(_day) || _day < 1 || _day > 31) return;
+
+        const newData = { ...data };
+        const mapping: Record<string, keyof OrcamentoData> = {
+            'receitas': 'receitas',
+            'fixas': 'fixas',
+            'variaveis': 'variaveis',
+            'gastosMes': 'gastosMes',
+            'gastosMesHistorico': 'gastosMesHistorico',
+            'dividas': 'dividas'
         };
-        const nomeMes = monthName.toLowerCase().split(' ')[0];
-        return meses[nomeMes] || '--';
-    })();
+
+        const key = mapping[tipo];
+        if (!key) return;
+
+        const list = newData[key] as any[];
+        if (!list) return;
+
+        const idx = list.findIndex(i => i.id === id);
+        if (idx !== -1) {
+            list[idx] = { ...list[idx], vencimento: _day };
+            
+            if (newData.cronograma) {
+                const cronoIdx = newData.cronograma.findIndex(i => i.id === id);
+                if (cronoIdx !== -1) {
+                    newData.cronograma[cronoIdx] = { ...newData.cronograma[cronoIdx], vencimento: _day };
+                }
+            }
+            
+            setData(newData);
+            saveData(newData);
+            showToast('Data atualizada!', 'success');
+        }
+    };
 
     return (
         <div className="fade-in space-y-4 md:space-y-6 mb-12">
@@ -475,13 +511,29 @@ export function TabExtrato({ data, setData, saveData, monthName }: TabExtratoPro
                                         </div>
 
                                         {/* DATA */}
-                                        <div className="w-40 shrink-0 leading-none">
+                                        <div className="w-40 shrink-0 flex items-center">
                                             <span className="md:hidden text-[11px] font-black text-slate-500 uppercase mr-2.5 text-xs">Data:</span>
-                                            <span className="text-[13px] md:text-[14px] font-black text-slate-600 uppercase tracking-widest leading-none">
-                                                {item.vencimento
-                                                    ? `${String(item.vencimento).padStart(2, '0')}/${mesNumero}`
-                                                    : '-'}
-                                            </span>
+                                            <div className="flex items-center text-[13px] md:text-[14px] font-medium text-slate-600 uppercase tracking-widest bg-transparent hover:bg-slate-100/80 focus-within:bg-slate-100/80 rounded px-1 -ml-1 transition-colors">
+                                                <input 
+                                                    key={`date-${item.id}-${item.vencimento}`}
+                                                    type="text" 
+                                                    inputMode="numeric"
+                                                    maxLength={2}
+                                                    className="w-[18px] md:w-[20px] bg-transparent border-none p-0 focus:ring-0 text-center leading-none appearance-none outline-none rounded font-medium text-slate-600"
+                                                    defaultValue={item.vencimento ? String(item.vencimento).padStart(2, '0') : ''}
+                                                    placeholder="--"
+                                                    onBlur={(e) => {
+                                                        const val = parseInt(e.target.value, 10);
+                                                        if (!isNaN(val) && val !== item.vencimento) updateDate(item.id, item.tipo, e.target.value);
+                                                    }}
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === 'Enter') e.currentTarget.blur();
+                                                    }}
+                                                />
+                                                <span className="ml-[1px] pointer-events-none">
+                                                    /{formatFullDate(monthName, 1).split('/')[1]}
+                                                </span>
+                                            </div>
                                         </div>
 
                                         {/* CATEGORIA */}
@@ -539,7 +591,7 @@ export function TabExtrato({ data, setData, saveData, monthName }: TabExtratoPro
                                         {/* VALOR */}
                                         <div className="w-40 shrink-0 text-right flex flex-nowrap items-center justify-between md:justify-end gap-3">
                                             <span className="md:hidden text-[11px] font-black text-slate-500 uppercase mr-2.5 text-xs">Valor:</span>
-                                            <span className={`text-[12.5px] md:text-[13.5px] font-black tracking-tight ${(item as any).isSaldo ? 'text-blue-600' : (item.tipo === 'receitas' ? 'text-emerald-600' : 'text-rose-600')}`}>
+                                            <span className={`text-[12.5px] md:text-[13.5px] font-medium tracking-tight ${(item as any).isSaldo ? 'text-blue-600' : (item.tipo === 'receitas' ? 'text-emerald-600' : 'text-rose-600')}`}>
                                                 {(item as any).isSaldo ? '' : (item.tipo === 'receitas' ? '+' : '-')}{fmt(item.v)}
                                             </span>
                                         </div>

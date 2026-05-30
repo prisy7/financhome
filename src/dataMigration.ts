@@ -1,5 +1,6 @@
 import { OrcamentoData } from './types';
 import { defaultData, CURRENT_SCHEMA_VERSION } from './constants';
+import { syncGastosMes } from './utils';
 
 export const normalizeData = (parsed: any): OrcamentoData => {
     // Phase 1: Ensure initial structure exists (always needed for very old data)
@@ -217,7 +218,45 @@ export const normalizeData = (parsed: any): OrcamentoData => {
         version = 7;
     }
 
+    if (version < 8) {
+        // Merge Feira and Mercado
+        let valFeira = 0;
+        
+        // Find feira budget in gastosMes
+        if (parsed.gastosMes) {
+            const fIndex = parsed.gastosMes.findIndex((i: any) => i.id === 'feira' || (typeof i.d === 'string' && i.d.toLowerCase() === 'feira'));
+            if (fIndex > -1) {
+                valFeira = Number(parsed.gastosMes[fIndex].v) || 0;
+                // We'll wipe it out. In syncGastosMes it will be processed, but we removed feira from base categories anyway.
+                parsed.gastosMes[fIndex].v = 0;
+            }
+        }
+        
+        // Merge the history
+        if (parsed.gastosMesHistorico) {
+            parsed.gastosMesHistorico.forEach((item: any) => {
+                if (item.categoria === 'feira' || (typeof item.d === 'string' && item.d.toLowerCase() === 'feira')) {
+                    item.isMercado = true;
+                }
+            });
+        }
+        
+        // Update Mercado budget + 250
+        if (parsed.mercado) {
+            const weeks = (parsed.mercado.gastosReais && parsed.mercado.gastosReais.length) ? parsed.mercado.gastosReais.length : 4;
+            // Sum their old feira budget + 250, distribute to weeks
+            const bumpTotal = valFeira + 250;
+            const weekBump = bumpTotal / weeks;
+            parsed.mercado.metaSemanal = (parsed.mercado.metaSemanal || 0) + weekBump;
+        }
+
+        version = 8;
+    }
+
     parsed.schemaVersion = CURRENT_SCHEMA_VERSION;
+    
+    // Always sync Gastos Mês to ensure no duplicates and all base categories are present
+    parsed = syncGastosMes(parsed);
 
     return parsed as OrcamentoData;
 };

@@ -3,6 +3,151 @@ export function fmt(v: number | string | undefined | null): string {
     return val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
+export const baseCategoriasList = [
+    { id: 'farmacia', label: 'Farmácia' },
+    { id: 'perfumaria', label: 'Perfumaria' },
+    { id: 'presente', label: 'Presente' },
+    { id: 'restaurante', label: 'Restaurante/Lanche' },
+    { id: 'passeio', label: 'Saída/Passeio' },
+    { id: 'servicos', label: 'Serviços' },
+    { id: 'uber', label: 'Uber/99' },
+    { id: 'utilidades', label: 'Utilidades' },
+    { id: 'agua', label: 'Água' },
+    { id: 'ian', label: 'Ian' },
+    { id: 'padaria', label: 'Padaria' },
+    { id: 'papelaria', label: 'Papelaria' },
+    { id: 'delivery', label: 'Delivery' },
+    { id: 'vestuario', label: 'Vestuário' },
+    { id: 'streaming', label: 'Streaming' },
+    { id: 'bilhete', label: 'Bilhete Único' },
+    { id: 'doacao', label: 'Doação' },
+    { id: 'escoteiro', label: 'Escoteiro' },
+    { id: 'extras', label: 'Gastos Extras' },
+    { id: 'terreiro', label: 'Terreiro Pri' },
+    { id: 'saude', label: 'Saúde/Médico' },
+    { id: 'educacao', label: 'Educação/Cursos' },
+    { id: 'combustivel', label: 'Combustível/Transporte' },
+    { id: 'manutencao', label: 'Manutenção / Casa' },
+    { id: 'internet', label: 'Internet / TV' },
+    { id: 'limpeza', label: 'Limpeza / Diarista' },
+    { id: 'beleza', label: 'Beleza / Salão' },
+    { id: 'festa', label: 'Festa / Aniversário' },
+    { id: 'outros', label: 'Outros' }
+];
+
+export function syncGastosMes(data: any): any {
+    if (!data.gastosMes) return data;
+    
+    // First, consolidate duplicates in gastosMes (merge 'v')
+    const uniqueGastosMap = new Map<string, any>();
+    
+    for (const g of data.gastosMes) {
+        if (g.id === 19 || (g.d || '').toLowerCase() === 'supermercado' || (g.d || '').toLowerCase() === 'mercado') {
+            continue;
+        }
+
+        const normDesc = (g.d || '').trim();
+        const key = normDesc.toLowerCase();
+        
+        if (uniqueGastosMap.has(key)) {
+            const existing = uniqueGastosMap.get(key);
+            existing.v = round2((existing.v || 0) + (g.v || 0));
+        } else {
+            uniqueGastosMap.set(key, { ...g, d: normDesc });
+        }
+    }
+    
+    // Track hidden IDs directly
+    let hiddenIds = new Set<string>();
+    try {
+        if (typeof window !== 'undefined') {
+            const savedHidden = window.localStorage.getItem('financask_hidden_categories');
+            if (savedHidden) {
+                hiddenIds = new Set(JSON.parse(savedHidden));
+            }
+        }
+    } catch(e) {}
+
+    // Now ensure all baseCategoriasList exist in the map
+    baseCategoriasList.forEach(cat => {
+        // Skip adding if it's hidden and not already in map!
+        if (hiddenIds.has(cat.id)) {
+            return; 
+        }
+        
+        const key = cat.label.toLowerCase();
+        if (!uniqueGastosMap.has(key)) {
+            uniqueGastosMap.set(key, {
+                id: crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(),
+                d: cat.label,
+                v: 0,
+                paid: false
+            });
+        }
+    });
+    
+    // Also inject any custom categories the user created in the modal
+    try {
+        if (typeof window !== 'undefined') {
+            const savedCustom = window.localStorage.getItem('financask_custom_categories');
+            if (savedCustom) {
+                const customCats = JSON.parse(savedCustom);
+                customCats.forEach((c: any) => {
+                    if (c.label) {
+                        const key = c.label.toLowerCase().trim();
+                        // Also skip custom ones if hidden
+                        if (hiddenIds.has(c.id)) {
+                            return; 
+                        }
+                        if (!uniqueGastosMap.has(key)) {
+                            uniqueGastosMap.set(key, {
+                                id: c.id || Math.random().toString(),
+                                d: c.label.trim(),
+                                v: 0,
+                                paid: false
+                            });
+                        }
+                    }
+                });
+            }
+            
+            // Remove ANY existing item that is zero and hidden!
+            for (const [key, val] of uniqueGastosMap.entries()) {
+                if ((!val.v || val.v === 0)) {
+                    // is it explicitly in hidden IDs by actual object id?
+                    if (hiddenIds.has(val.id)) {
+                        uniqueGastosMap.delete(key);
+                    } else {
+                        // is it a base category that is hidden? (check its label against hidden base cat IDs)
+                        const matchingBaseCat = baseCategoriasList.find(b => b.label.toLowerCase() === key);
+                        if (matchingBaseCat && hiddenIds.has(matchingBaseCat.id)) {
+                            uniqueGastosMap.delete(key);
+                        }
+                    }
+                }
+            }
+        }
+    } catch(e) {}
+    
+    // Convert back to array
+    const newGastosMes = Array.from(uniqueGastosMap.values());
+    
+    // Sort array alphabetically by name, but keep 'Outros' at the bottom
+    newGastosMes.sort((a, b) => {
+        if (a.d === 'Outros') return 1;
+        if (b.d === 'Outros') return -1;
+        return a.d.localeCompare(b.d, 'pt-BR');
+    });
+
+    // Add back Mercado placeholder
+    newGastosMes.unshift({id: 19, d: 'Mercado / Feira', v: 0, paid: false, isMercado: true});
+    
+    return {
+        ...data,
+        gastosMes: newGastosMes
+    };
+}
+
 export function unfmt(v: number | string | undefined | null): number {
     if (typeof v === 'number') return v;
     if (!v) return 0;
@@ -120,14 +265,26 @@ export const MONTH_MAP: Record<string, number> = {
 };
 
 export function formatFullDate(monthName: string | undefined, day: number | string | undefined | null): string {
+    const fallbackMonth = String(new Date().getMonth() + 1).padStart(2, '0');
     if (!day) return '-';
-    if (!monthName) return `Dia ${day}`;
+    
+    // Normalize day
+    const d = String(day).padStart(2, '0');
+
+    if (!monthName) return `${d}/${fallbackMonth}`;
     
     const parts = monthName.toLowerCase().split(' ');
-    const monthIndex = MONTH_MAP[parts[0]];
+    const nomeMes = parts[0];
     
-    if (monthIndex === undefined) return `Dia ${day}`;
+    // Check for "Mês Atual" or similar
+    if (nomeMes.includes('mês') || nomeMes.includes('mes')) {
+        return `${d}/${fallbackMonth}`;
+    }
+
+    const monthIndex = MONTH_MAP[nomeMes];
+    
+    if (monthIndex === undefined) return `${d}/${fallbackMonth}`;
     
     const m = String(monthIndex + 1).padStart(2, '0');
-    return `${String(day).padStart(2, '0')}/${m}`;
+    return `${d}/${m}`;
 }

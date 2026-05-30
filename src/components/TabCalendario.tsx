@@ -139,7 +139,7 @@ export function TabCalendario({ data, setData, saveData, monthName, onClose }: T
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-6 bg-slate-900/60 backdrop-blur-sm">
-            <div className="bg-white w-full max-w-5xl max-h-[95vh] rounded-[2.5rem] shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in duration-300">
+            <div className="bg-white w-full max-w-7xl max-h-[95vh] rounded-[2.5rem] shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in duration-300">
                 {/* Header do Modal */}
                 <div className="px-8 py-6 border-b border-slate-100 flex items-center justify-between bg-white shrink-0">
                     <h2 className="text-lg md:text-xl font-black text-slate-800 tracking-tight flex items-center gap-4">
@@ -148,7 +148,7 @@ export function TabCalendario({ data, setData, saveData, monthName, onClose }: T
                         </div>
                         <div>
                             Calendário de Pagamentos
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">
+                            <p className="text-[10.5px] font-black text-slate-400 uppercase tracking-widest mt-1">
                                 {format(dateReference, 'MMMM yyyy', { locale: ptBR })} • {allItems.length} Contas Programadas
                             </p>
                         </div>
@@ -169,13 +169,13 @@ export function TabCalendario({ data, setData, saveData, monthName, onClose }: T
                         <div className="flex-1 min-w-0">
                             <div className="grid grid-cols-7 gap-2 md:gap-4 text-center mb-4">
                                 {weekDays.map(day => (
-                                    <div key={day} className="text-[10px] md:text-xs font-black uppercase text-slate-300 tracking-widest">{day}</div>
+                                    <div key={day} className="text-[10.5px] md:text-xs font-black uppercase text-slate-300 tracking-widest">{day}</div>
                                 ))}
                             </div>
 
                             <div className="grid grid-cols-7 gap-1 md:gap-2">
                                 {emptySlots.map(slot => (
-                                    <div key={`empty-${slot}`} className="h-14 md:h-20 rounded-2xl bg-slate-50/30"></div>
+                                    <div key={`empty-${slot}`} className="h-14 md:h-28 rounded-2xl bg-slate-50/30"></div>
                                 ))}
                                 
                                 {daysInMonth.map(date => {
@@ -189,24 +189,24 @@ export function TabCalendario({ data, setData, saveData, monthName, onClose }: T
                                         <button
                                             key={day}
                                             onClick={() => setSelectedDay(day)}
-                                            className={`relative flex flex-col h-14 md:h-20 rounded-xl md:rounded-2xl p-1 md:p-1.5 border-2 transition-all duration-200 outline-none
+                                            className={`relative flex flex-col h-14 md:h-28 rounded-xl md:rounded-2xl p-1 md:p-1.5 border-2 transition-all duration-200 outline-none
                                                 ${isSelected ? 'border-indigo-500 bg-indigo-50/30' : 'border-slate-50 hover:border-slate-200 bg-white'}
                                                 ${isTodayDate && !isSelected ? 'border-amber-200 bg-amber-50/30' : ''}
                                             `}
                                         >
-                                            <span className={`text-xs font-black ml-1 text-left ${isTodayDate ? 'text-amber-600' : 'text-slate-400'}`}>
+                                            <span className={`text-[13px] font-black ml-1 text-left ${isTodayDate ? 'text-amber-600' : 'text-slate-400'}`}>
                                                 {day}
                                             </span>
                                             
                                             <div className="mt-1 flex-1 flex flex-col gap-1 overflow-hidden">
-                                                {dayItems.slice(0, 2).map((item, idx) => (
-                                                    <div key={idx} className={`w-full text-[8.5px] md:text-[9.5px] leading-tight px-1 py-0.5 rounded-md text-left border truncate ${item.paid ? 'opacity-40 grayscale line-through border-transparent bg-slate-100 text-slate-500' : item.typeColor} font-black transition-all shadow-sm`}>
+                                                {dayItems.slice(0, 3).map((item, idx) => (
+                                                    <div key={idx} className={`w-full text-[9px] md:text-[10px] leading-tight px-1 py-0.5 rounded-md text-left border truncate ${item.paid ? 'opacity-40 grayscale line-through border-transparent bg-slate-100 text-slate-500' : item.typeColor} font-black transition-all shadow-sm`}>
                                                         {item.d}
                                                     </div>
                                                 ))}
-                                                {dayItems.length > 2 && (
-                                                    <div className="text-[8px] text-slate-300 font-black text-left ml-1">
-                                                        +{dayItems.length - 2}
+                                                {dayItems.length > 3 && (
+                                                    <div className="text-[8.5px] text-slate-300 font-black text-left ml-1">
+                                                        +{dayItems.length - 3}
                                                     </div>
                                                 )}
                                             </div>
@@ -243,13 +243,13 @@ export function TabCalendario({ data, setData, saveData, monthName, onClose }: T
 
                                             <div className="grid grid-cols-2 gap-2 shrink-0">
                                                 <div className="bg-white p-3 rounded-xl border border-slate-100 shadow-sm flex justify-between items-center whitespace-nowrap min-w-[120px]">
-                                                    <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest mr-2">Total Dia:</p>
+                                                    <p className="text-[10.5px] font-black uppercase text-slate-400 tracking-widest mr-2">Total Dia:</p>
                                                     <p className="text-sm font-black text-slate-800 tracking-tight">
                                                         {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalDia)}
                                                     </p>
                                                 </div>
                                                 <div className="bg-white p-3 rounded-xl border border-slate-100 shadow-sm flex justify-between items-center whitespace-nowrap min-w-[120px]">
-                                                    <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest mr-2">Total Semana:</p>
+                                                    <p className="text-[10.5px] font-black uppercase text-slate-400 tracking-widest mr-2">Total Semana:</p>
                                                     <p className="text-sm font-black text-slate-800 tracking-tight">
                                                         {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalSemana)}
                                                     </p>
@@ -279,14 +279,14 @@ export function TabCalendario({ data, setData, saveData, monthName, onClose }: T
                                                                 {item.paid ? <CheckCircle2 size={16} className="fill-emerald-50 text-emerald-500" strokeWidth={3} /> : <Circle size={16} strokeWidth={3} />}
                                                             </button>
                                                             <div className="flex-1 min-w-0 flex items-center gap-1.5">
-                                                                <span className={`px-1 py-0.5 border rounded-[4px] text-[7px] font-black uppercase tracking-tighter shrink-0 ${item.typeColor}`}>
+                                                                <span className={`px-1 py-0.5 border rounded-[4px] text-[7.5px] font-black uppercase tracking-tighter shrink-0 ${item.typeColor}`}>
                                                                     {item.typeLabel}
                                                                 </span>
                                                                 <input 
                                                                     type="text"
                                                                     value={item.d}
                                                                     onChange={(e) => handleUpdateItem(item, 'd', e.target.value)}
-                                                                    className={`w-full bg-transparent border-none p-0 focus:ring-0 text-[10px] uppercase tracking-tight leading-tight ${item.paid ? 'text-slate-400 line-through' : 'text-slate-800'}`}
+                                                                    className={`w-full bg-transparent border-none p-0 focus:ring-0 text-[10.5px] uppercase tracking-tight leading-tight ${item.paid ? 'text-slate-400 line-through' : 'text-slate-800'}`}
                                                                 />
                                                             </div>
                                                             <div className={`text-right shrink-0 ${item.paid ? 'text-slate-400' : 'text-slate-800'}`}>
@@ -294,7 +294,7 @@ export function TabCalendario({ data, setData, saveData, monthName, onClose }: T
                                                                     <CurrencyInput
                                                                         value={item.v}
                                                                         onChangeValue={(val) => handleUpdateItem(item, 'v', val)}
-                                                                        className={`w-full bg-transparent border-none p-0 text-right focus:ring-0 text-[10px] tracking-tight ${item.paid ? 'text-slate-400' : 'text-slate-800'}`}
+                                                                        className={`w-full bg-transparent border-none p-0 text-right focus:ring-0 text-[10.5px] tracking-tight ${item.paid ? 'text-slate-400' : 'text-slate-800'}`}
                                                                     />
                                                                 </div>
                                                             </div>

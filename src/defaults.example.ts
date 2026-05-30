@@ -8,7 +8,7 @@ export const defaultDataTemplate = {
     ],
     dividas: [], 
     variaveis: [
-        {id:19, d:'Supermercado', v:1000, paid: false, isMercado: true}, 
+        {id:19, d:'Mercado / Feira', v:1000, paid: false, isMercado: true}, 
         {id:6, d:'Gás', v:100.00, paid: false}, 
         {id:8, d:'Energia', v:150, paid: false}, 
         {id:11, d:'Internet/TV', v:100, paid: false}, 

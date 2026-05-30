@@ -29,27 +29,14 @@ export function CurrencyInput({
         setLocalVal(cleanVal === undefined || cleanVal === null ? '' : cleanVal);
     }, [value]);
 
-    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === '.') {
-            e.preventDefault();
-            const target = e.target as HTMLInputElement;
-            const start = target.selectionStart;
-            const end = target.selectionEnd;
-            if (start !== null && end !== null) {
-                target.setRangeText(',', start, end, 'end');
-                target.dispatchEvent(new Event('input', { bubbles: true }));
-            }
-        }
-        if (onKeyDown) onKeyDown(e);
-    };
-
     return (
         <ReactCurrencyInput
-            intlConfig={{ locale: 'pt-BR', currency: 'BRL' }}
+            prefix="R$ "
             decimalSeparator=","
             groupSeparator="."
             allowDecimals={true}
             decimalsLimit={2}
+            type="text"
             value={localVal}
             onValueChange={(val, name, values) => {
                 setLocalVal(val || "");
@@ -64,13 +51,12 @@ export function CurrencyInput({
                 if (onBlur) onBlur(e);
             }}
             onFocus={onFocus}
-            onKeyDown={handleKeyDown}
+            onKeyDown={onKeyDown}
             className={className}
             placeholder={placeholder}
             disabled={disabled}
             autoFocus={autoFocus}
             inputMode="decimal"
-            pattern="[0-9]*[.,]?[0-9]*"
             {...props}
         />
     );

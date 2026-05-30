@@ -114,6 +114,17 @@ export function TabProvisoes({ data, setData, saveData }: TabProvisoesProps) {
         saveData(newData);
     };
 
+    const updateMonthlyGoal = (key: string, monthKey: string, val: number) => {
+        const newData = { ...data };
+        if (!newData.provisoes[key]) return;
+        if (!newData.provisoes[key].metasMensais) {
+            newData.provisoes[key].metasMensais = {};
+        }
+        newData.provisoes[key].metasMensais[monthKey] = val;
+        setData(newData);
+        saveData(newData);
+    };
+
     const addProvision = () => {
         const key = `reserva_${Date.now()}`;
         const newData = { ...data };

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Tag, ShoppingCart, Trash2, Plus } from 'lucide-react';
 import { OrcamentoData } from '../types';
-import { fmt, unfmt, maskMoney, round2 } from '../utils';
+import { fmt, unfmt, maskMoney, round2, formatFullDate } from '../utils';
 import { CurrencyInput } from './CurrencyInput';
 
 interface TabMercadoProps {
@@ -23,6 +23,11 @@ export function TabMercado({ data, setData, saveData, monthName, onAdd }: TabMer
     const totalReal = round2(gastosReais.reduce((a, b) => a + b, 0));
     const totalExtraAcumulado = round2((overflowAnterior || 0) + (totalReal - totalPrevisto));
     const saldo = round2((metaSemanal * gastosReais.length) - totalReal - (overflowAnterior || 0));
+
+    // Calculating sub-totals for Feira vs the rest
+    const marketHistory = (data.gastosMesHistorico || []).filter(i => (i as any).isMercado);
+    const totalFeira = round2(marketHistory.filter(i => (i.d || '').toLowerCase().includes('feira')).reduce((a, b) => a + Number(b.v || 0), 0));
+    const totalMercadoPuro = round2(totalReal - totalFeira);
 
     const ranges = ["Dia 01 a 07", "Dia 08 a 14", "Dia 15 a 21", "Dia 22 a 28", "Dia 29 a 31"];
 
@@ -64,17 +69,6 @@ export function TabMercado({ data, setData, saveData, monthName, onAdd }: TabMer
         setData(newData);
         saveData(newData);
     };
-
-    const mesNumero = (() => {
-        if (!monthName) return '--';
-        const meses: Record<string, string> = {
-            'janeiro':'01','fevereiro':'02','março':'03','abril':'04',
-            'maio':'05','junho':'06','julho':'07','agosto':'08',
-            'setembro':'09','outubro':'10','novembro':'11','dezembro':'12'
-        };
-        const nomeMes = monthName.toLowerCase().split(' ')[0];
-        return meses[nomeMes] || '--';
-    })();
 
     return (
         <div className="fade-in mb-10 space-y-4 md:space-y-6">
@@ -150,6 +144,10 @@ export function TabMercado({ data, setData, saveData, monthName, onAdd }: TabMer
                     <p className="text-xs md:text-sm font-black text-slate-400 uppercase tracking-widest mb-1">SALDO DO MÊS</p>
                     <p className={`text-base md:text-lg font-black tracking-tight leading-none ${saldo >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>{fmt(saldo)}</p>
                     <p className="text-xs md:text-sm font-black text-slate-300 uppercase tracking-widest mt-2 md:mt-2">Gasto Real: <span className="text-slate-500 font-black">{fmt(totalReal)}</span></p>
+                    <div className="border-t border-slate-200/60 mt-2 pt-2 flex flex-col gap-1 items-center md:items-end w-full">
+                        <p className="text-[10px] md:text-[11px] font-black text-slate-400 uppercase tracking-widest">Feira: <span className="text-lime-600 font-black">{fmt(totalFeira)}</span></p>
+                        <p className="text-[10px] md:text-[11px] font-black text-slate-400 uppercase tracking-widest">Mercado: <span className="text-purple-500 font-black">{fmt(totalMercadoPuro)}</span></p>
+                    </div>
                 </div>
             </div>
             
@@ -204,7 +202,7 @@ export function TabMercado({ data, setData, saveData, monthName, onAdd }: TabMer
                                 <ShoppingCart size={16} />
                             </div>
                             <div>
-                                <h3 className="text-sm md:text-base font-black text-slate-800 uppercase tracking-widest italic">Extrato de Compras Mercado</h3>
+                                <h3 className="text-sm md:text-base font-black text-slate-800 uppercase tracking-widest italic">Extrato de Compras Mercado / Feira</h3>
                                 <p className="text-[11px] md:text-xs font-black text-slate-400 uppercase tracking-widest">Histórico Detalhado</p>
                             </div>
                         </div>
@@ -235,8 +233,8 @@ export function TabMercado({ data, setData, saveData, monthName, onAdd }: TabMer
                                         <div className="flex items-center gap-4 min-w-0 flex-1">
                                             {/* DATA */}
                                             <div className="w-32 shrink-0 leading-none">
-                                                <span className="text-[13px] md:text-[14px] font-black text-slate-600 uppercase tracking-widest leading-none">
-                                                    {item.vencimento ? `${String(item.vencimento).padStart(2,'0')}/${mesNumero}` : '--'}
+                                                <span className="text-[13px] md:text-[14px] font-medium text-slate-600 uppercase tracking-widest leading-none">
+                                                    {formatFullDate(monthName, item.vencimento)}
                                                 </span>
                                             </div>
 
@@ -263,7 +261,7 @@ export function TabMercado({ data, setData, saveData, monthName, onAdd }: TabMer
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-3 w-40 shrink-0 justify-end">
-                                            <p className="font-black text-slate-800 text-sm text-right shrink-0">{fmt(item.v)}</p>
+                                            <p className="font-medium text-slate-800 text-sm text-right shrink-0">{fmt(item.v)}</p>
                                             <button 
                                                 onClick={() => {
                                                         if (window.confirm(`Deseja realmente excluir "${item.d}"?`)) {

@@ -2,5 +2,5 @@
   "name": "Controle Financeiro",
   "description": "App para controle de orçamento pessoal consolidado.",
   "requestFramePermissions": ["notifications"],
-  "majorCapabilities": []
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

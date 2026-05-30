@@ -90,7 +90,7 @@ export function FaltaPagarModal({ data, onClose }: FaltaPagarModalProps) {
                                                     )}
                                                 </div>
                                                 <div className="text-right">
-                                                    <p className="text-sm font-black text-rose-600 tracking-tighter">{fmt(item.v)}</p>
+                                                    <p className="text-sm font-medium text-rose-600 tracking-tighter">{fmt(item.v)}</p>
                                                 </div>
                                             </div>
                                         ))}
