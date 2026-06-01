@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { 
-  Wallet, Plus, Download, RotateCcw, LogIn, LogOut, ChevronDown, Cloud, RefreshCw, Bell, BellOff, Users, Trash2, CheckCircle, Calendar
+  Wallet, Plus, Download, RotateCcw, LogIn, LogOut, ChevronDown, Cloud, RefreshCw, Bell, BellOff, Users, Trash2, CheckCircle, Calendar, Edit2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { defaultData, STORAGE_KEY_MONTHS } from './constants';
@@ -17,6 +17,7 @@ import { TabEvolucao } from './components/TabEvolucao';
 import { LancamentoModal } from './components/LancamentoModal';
 import { ResetMonthModal } from './components/ResetMonthModal';
 import { DeleteMonthModal } from './components/DeleteMonthModal';
+import { RenameMonthModal } from './components/RenameMonthModal';
 import { auth, db, handleFirestoreError, OperationType } from './firebase';
 import { getRedirectResult } from 'firebase/auth';
 import { useMonthManager } from './hooks/useMonthManager';
@@ -35,6 +36,7 @@ export default function App() {
   const [showResetModal, setShowResetModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [showRenameModal, setShowRenameModal] = useState(false);
   const [householdCode, setHouseholdCode] = useState(localStorage.getItem('orcamento_household_code') || '');
   const [novoMesInputs, setNovoMesInputs] = useState({ mes: 'Janeiro', ano: '2025' });
   const debounceTimeoutRef = useRef<any>(null);
@@ -325,6 +327,29 @@ export default function App() {
       setShowNovoMesModal(true);
   };
 
+  const handleRenameMonth = async (newName: string) => {
+      if (!currentMonthId) return;
+      const newMonths = availableMonths.map(m => 
+          m.id === currentMonthId ? { ...m, name: newName } : m
+      );
+      setAvailableMonths(newMonths);
+      localStorage.setItem(STORAGE_KEY_MONTHS, JSON.stringify(newMonths));
+      
+      if (user && data) {
+          try {
+              setIsSavingLocal(true);
+              await saveMonthToFirestore(currentMonthId, newName, data);
+          } catch (e) {
+              console.error(e);
+              showToast("Aviso: Renomeado apenas localmente", 'error');
+          } finally {
+              setIsSavingLocal(false);
+          }
+      }
+      setShowRenameModal(false);
+      showToast('Mês renomeado com sucesso!', 'success');
+  };
+
   const handleCreateMonth = async () => {
       const name = `${novoMesInputs.mes} ${novoMesInputs.ano}`;
       const id = 'mes_' + crypto.randomUUID();
@@ -547,6 +572,13 @@ export default function App() {
         monthId={currentMonthId || ''}
       />
 
+      <RenameMonthModal
+        isOpen={showRenameModal}
+        onClose={() => setShowRenameModal(false)}
+        onConfirm={handleRenameMonth}
+        currentName={availableMonths.find(m => m.id === currentMonthId)?.name || ''}
+      />
+
       {showSettingsModal && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
             <div className="bg-white p-6 md:p-8 rounded-[2rem] shadow-2xl max-w-sm w-full border border-slate-100">
@@ -667,6 +699,15 @@ export default function App() {
                                     title="Adicionar Novo Mês"
                                 >
                                     <Plus size={14} />
+                                </button>
+
+                                <button 
+                                    onClick={() => setShowRenameModal(true)}
+                                    disabled={syncing}
+                                    className="flex w-8 h-8 items-center justify-center bg-amber-50 text-amber-500 rounded-xl border border-amber-100 hover:bg-amber-500 hover:text-white transition-all shadow-sm active:scale-90"
+                                    title="Renomear Mês"
+                                >
+                                    <Edit2 size={13} />
                                 </button>
 
                                 <button 

@@ -349,8 +349,11 @@ export function TabExtrato({ data, setData, saveData, monthName }: TabExtratoPro
     };
 
     const updateDate = (id: string | number, tipo: string, newDateStr: string) => {
-        const _day = parseInt(newDateStr, 10);
-        if (isNaN(_day) || _day < 1 || _day > 31) return;
+        let _day: number | undefined;
+        if (newDateStr.trim() !== '') {
+            _day = parseInt(newDateStr, 10);
+            if (isNaN(_day) || _day < 1 || _day > 31) return;
+        }
 
         const newData = { ...data };
         const mapping: Record<string, keyof OrcamentoData> = {
@@ -465,7 +468,6 @@ export function TabExtrato({ data, setData, saveData, monthName }: TabExtratoPro
 
                         {/* TABLE HEADERS */}
                         <div className="hidden md:flex flex-row gap-2 px-3 py-2 bg-slate-100/60 border-b border-slate-200 text-[11px] font-black text-slate-500 uppercase tracking-[0.15em] items-center">
-                            <div className="w-6 shrink-0 flex justify-center opacity-40"><CheckCircle2 size={10} /></div>
                             <div className="w-40 shrink-0">Data</div>
                             <div className="w-96 shrink-0">Categoria</div>
                             <div className="flex-1 min-w-0">Descrição</div>
@@ -500,31 +502,28 @@ export function TabExtrato({ data, setData, saveData, monthName }: TabExtratoPro
                                             className={`flex flex-row items-center gap-2 px-3 py-2 hover:bg-slate-50 transition-all group border-b border-slate-100 ${!item.paid ? 'bg-slate-50/50' : ''}`}
                                         >
 
-                                        {/* CHECKBOX */}
-                                        <div className="w-6 shrink-0">
-                                          <button 
-                                            onClick={() => togglePaid(item.id, item.tipo)}
-                                            className={`w-6 h-6 md:w-5 md:h-5 rounded-lg border-2 flex items-center justify-center transition-all ${item.paid ? 'bg-emerald-500 border-emerald-500 text-white shadow-sm' : 'border-slate-300 hover:border-slate-400 bg-white'}`}
-                                          >
-                                            {item.paid && <CheckCircle2 size={12} strokeWidth={4} />}
-                                          </button>
-                                        </div>
-
                                         {/* DATA */}
                                         <div className="w-40 shrink-0 flex items-center">
                                             <span className="md:hidden text-[11px] font-black text-slate-500 uppercase mr-2.5 text-xs">Data:</span>
                                             <div className="flex items-center text-[13px] md:text-[14px] font-medium text-slate-600 uppercase tracking-widest bg-transparent hover:bg-slate-100/80 focus-within:bg-slate-100/80 rounded px-1 -ml-1 transition-colors">
                                                 <input 
-                                                    key={`date-${item.id}-${item.vencimento}`}
-                                                    type="text" 
-                                                    inputMode="numeric"
-                                                    maxLength={2}
-                                                    className="w-[18px] md:w-[20px] bg-transparent border-none p-0 focus:ring-0 text-center leading-none appearance-none outline-none rounded font-medium text-slate-600"
-                                                    defaultValue={item.vencimento ? String(item.vencimento).padStart(2, '0') : ''}
+                                                    key={`date-${item.id}`}
+                                                    type="number" 
+                                                    min="1" max="31"
+                                                    className="w-[20px] md:w-[24px] bg-transparent border-none p-0 focus:ring-0 text-center leading-none appearance-none outline-none rounded font-medium text-slate-600 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none cursor-pointer focus:cursor-text"
+                                                    style={{ MozAppearance: 'textfield' }}
+                                                    value={item.vencimento || ''}
                                                     placeholder="--"
-                                                    onBlur={(e) => {
-                                                        const val = parseInt(e.target.value, 10);
-                                                        if (!isNaN(val) && val !== item.vencimento) updateDate(item.id, item.tipo, e.target.value);
+                                                    onChange={(e) => {
+                                                        const valStr = e.target.value;
+                                                        if (valStr === '') {
+                                                            updateDate(item.id, item.tipo, '');
+                                                        } else {
+                                                            const val = parseInt(valStr, 10);
+                                                            if (!isNaN(val) && val >= 1 && val <= 31) {
+                                                                updateDate(item.id, item.tipo, valStr);
+                                                            }
+                                                        }
                                                     }}
                                                     onKeyDown={(e) => {
                                                         if (e.key === 'Enter') e.currentTarget.blur();

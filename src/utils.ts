@@ -273,16 +273,16 @@ export function formatFullDate(monthName: string | undefined, day: number | stri
 
     if (!monthName) return `${d}/${fallbackMonth}`;
     
-    const parts = monthName.toLowerCase().split(' ');
-    const nomeMes = parts[0];
-    
-    // Check for "Mês Atual" or similar
-    if (nomeMes.includes('mês') || nomeMes.includes('mes')) {
-        return `${d}/${fallbackMonth}`;
+    const lowered = monthName.toLowerCase();
+    let monthIndex: number | undefined = undefined;
+
+    for (const [key, val] of Object.entries(MONTH_MAP)) {
+        if (lowered.includes(key)) {
+            monthIndex = val;
+            break;
+        }
     }
 
-    const monthIndex = MONTH_MAP[nomeMes];
-    
     if (monthIndex === undefined) return `${d}/${fallbackMonth}`;
     
     const m = String(monthIndex + 1).padStart(2, '0');
