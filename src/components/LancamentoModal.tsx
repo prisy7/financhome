@@ -52,6 +52,32 @@ export function LancamentoModal({ isOpen, onClose, onSave, mercado, initialType 
         } catch(e) {}
     }, []);
 
+    // Palavras-chave extras de busca por categoria (sinônimos + nomes antigos/longos)
+    const searchAliases: Record<string, string> = {
+        mercado: 'supermercado compras comida atacado mercadinho',
+        feira: 'hortifruti frutas verduras sacolao',
+        farmacia: 'remedio drogaria',
+        saude: 'medico consulta exame hospital dentista',
+        manutencao: 'manutencao casa conserto reparo',
+        servicos: 'servico prestador',
+        uber: 'uber 99 taxi corrida aplicativo transporte',
+        bilhete: 'bilhete unico onibus metro transporte passagem',
+        restaurante: 'restaurante lanche comida almoco janta comer fora',
+        delivery: 'delivery ifood entrega comida',
+        padaria: 'pao cafe',
+        presente: 'presente gift lembranca',
+        passeio: 'saida passeio role lazer cinema parque',
+        papelaria: 'material escolar escritorio',
+        vestuario: 'roupa calcado sapato loja',
+        beleza: 'beleza salao cabelo manicure estetica',
+        perfumaria: 'perfume cosmetico',
+        terreiro: 'terreiro religiao oferenda',
+        doacao: 'doacao caridade ajuda',
+        festa: 'festa aniversario niver comemoracao',
+        utilidades: 'utilidades casa',
+        escoteiro: 'escoteiro extra',
+    };
+
     const baseCategorias: Category[] = [
         { id: 'personalizado', label: 'Criar Categoria', group: 'Ações', color: 'text-indigo-700 bg-indigo-50 border-indigo-200' },
         { id: 'receita_principal', label: 'Receita Principal', group: 'Receitas', color: 'text-emerald-700 bg-emerald-100 border-emerald-500' },
@@ -60,34 +86,25 @@ export function LancamentoModal({ isOpen, onClose, onSave, mercado, initialType 
         { id: 'feira', label: 'Feira', group: 'Essenciais', color: 'text-lime-700 bg-lime-100 border-lime-500' },
         { id: 'farmacia', label: 'Farmácia', group: 'Saúde', color: 'text-rose-700 bg-rose-100 border-rose-500' },
         { id: 'saude', label: 'Saúde/Médico', group: 'Saúde', color: 'text-red-600 bg-red-100 border-red-400' },
-        { id: 'agua', label: 'Água', group: 'Contas', color: 'text-cyan-700 bg-cyan-100 border-cyan-500' },
-        { id: 'internet', label: 'Internet / TV', group: 'Contas', color: 'text-sky-800 bg-sky-100 border-sky-500' },
-        { id: 'limpeza', label: 'Limpeza / Diarista', group: 'Serviços', color: 'text-emerald-700 bg-emerald-100 border-emerald-500' },
-        { id: 'manutencao', label: 'Manutenção / Casa', group: 'Serviços', color: 'text-orange-800 bg-orange-100 border-orange-400' },
+        { id: 'manutencao', label: 'Manut./Casa', group: 'Serviços', color: 'text-orange-800 bg-orange-100 border-orange-400' },
         { id: 'servicos', label: 'Serviços', group: 'Serviços', color: 'text-slate-700 bg-slate-100 border-slate-500' },
-        { id: 'combustivel', label: 'Combustível/Transporte', group: 'Transporte', color: 'text-slate-800 bg-slate-100 border-slate-400' },
         { id: 'uber', label: 'Uber/99', group: 'Transporte', color: 'text-emerald-700 bg-emerald-100 border-emerald-500' },
-        { id: 'bilhete', label: 'Bilhete Único', group: 'Transporte', color: 'text-blue-800 bg-blue-50 border-blue-300' },
-        { id: 'restaurante', label: 'Restaurante/Lanche', group: 'Alimentação', color: 'text-amber-700 bg-amber-100 border-amber-500' },
+        { id: 'bilhete', label: 'Bilhete', group: 'Transporte', color: 'text-blue-800 bg-blue-50 border-blue-300' },
+        { id: 'restaurante', label: 'Rest/Lanche', group: 'Alimentação', color: 'text-amber-700 bg-amber-100 border-amber-500' },
         { id: 'delivery', label: 'Delivery', group: 'Alimentação', color: 'text-red-700 bg-red-100 border-red-500' },
         { id: 'padaria', label: 'Padaria', group: 'Alimentação', color: 'text-yellow-700 bg-yellow-100 border-yellow-500' },
         { id: 'presente', label: 'Presente', group: 'Lazer', color: 'text-orange-700 bg-orange-100 border-orange-500' },
         { id: 'passeio', label: 'Saída/Passeio', group: 'Lazer', color: 'text-blue-700 bg-blue-100 border-blue-500' },
-        { id: 'streaming', label: 'Streaming', group: 'Lazer', color: 'text-sky-700 bg-sky-100 border-sky-500' },
-        { id: 'educacao', label: 'Educação/Cursos', group: 'Educação', color: 'text-blue-800 bg-blue-100 border-blue-400' },
         { id: 'papelaria', label: 'Papelaria', group: 'Educação', color: 'text-teal-700 bg-teal-100 border-teal-500' },
         { id: 'vestuario', label: 'Vestuário', group: 'Pessoal', color: 'text-fuchsia-700 bg-fuchsia-100 border-fuchsia-500' },
-        { id: 'beleza', label: 'Beleza / Salão', group: 'Pessoal', color: 'text-pink-600 bg-pink-50 border-pink-300' },
+        { id: 'beleza', label: 'Beleza/Salão', group: 'Pessoal', color: 'text-pink-600 bg-pink-50 border-pink-300' },
         { id: 'perfumaria', label: 'Perfumaria', group: 'Pessoal', color: 'text-pink-700 bg-pink-100 border-pink-500' },
         { id: 'ian', label: 'Ian', group: 'Família', color: 'text-violet-700 bg-violet-100 border-violet-500' },
-        { id: 'escoteiro', label: 'Escoteiro', group: 'Família', color: 'text-amber-800 bg-amber-100 border-amber-500' },
-        { id: 'terreiro', label: 'Terreiro Pri', group: 'Religião', color: 'text-purple-800 bg-purple-100 border-purple-500' },
+        { id: 'escoteiro', label: 'Escoteiro/Extra', group: 'Família', color: 'text-amber-800 bg-amber-100 border-amber-500' },
+        { id: 'terreiro', label: 'Terreiro', group: 'Religião', color: 'text-purple-800 bg-purple-100 border-purple-500' },
         { id: 'doacao', label: 'Doação', group: 'Pessoal', color: 'text-emerald-800 bg-emerald-50 border-emerald-300' },
-        { id: 'festa', label: 'Festa / Aniversário', group: 'Lazer', color: 'text-pink-800 bg-pink-100 border-pink-400' },
-        { id: 'utilidades', label: 'Utilidades', group: 'Casa', color: 'text-zinc-700 bg-zinc-100 border-zinc-500' },
-        { id: 'pendente', label: 'Pendente', group: 'Outros', color: 'text-amber-700 bg-amber-50 border-amber-300' },
-        { id: 'extras', label: 'Gastos Extras', group: 'Outros', color: 'text-gray-700 bg-gray-100 border-gray-400' },
-        { id: 'outros', label: 'Outros', group: 'Outros', color: 'text-slate-700 bg-slate-100 border-slate-500' }
+        { id: 'festa', label: 'Festa/Aniv.', group: 'Lazer', color: 'text-pink-800 bg-pink-100 border-pink-400' },
+        { id: 'utilidades', label: 'Utilidades', group: 'Casa', color: 'text-zinc-700 bg-zinc-100 border-zinc-500' }
     ];
 
     const categorias = [...baseCategorias, ...customCategories].filter(c => !hiddenCategories.includes(c.id));
@@ -123,11 +140,10 @@ export function LancamentoModal({ isOpen, onClose, onSave, mercado, initialType 
         : categorias.filter(c => !c.id.startsWith('receita_'));
 
     const filteredCategorias = (() => {
-        const createBtn = rawFiltered.find(c => c.id === 'personalizado');
-        const others = rawFiltered.filter(c => c.id !== 'personalizado')
+        const base = rawFiltered.filter(c => c.id !== 'personalizado' && !c.isCustom)
             .sort((a, b) => a.label.localeCompare(b.label, 'pt-BR', { sensitivity: 'base' }));
-        
-        return createBtn ? [createBtn, ...others] : others;
+        const customs = rawFiltered.filter(c => c.id !== 'personalizado' && c.isCustom);
+        return [...base, ...customs];
     })();
 
     const groups = useMemo(() => {
@@ -141,10 +157,12 @@ export function LancamentoModal({ isOpen, onClose, onSave, mercado, initialType 
         let result = filteredCategorias;
 
         if (searchTerm.trim()) {
-            const term = searchTerm.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-            result = result.filter(c => 
-                c.label.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes(term)
-            );
+            const norm = (x: string) => x.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            const term = norm(searchTerm);
+            result = result.filter(c => {
+                const haystack = norm(c.label) + ' ' + norm(searchAliases[c.id] || '');
+                return haystack.includes(term);
+            });
         } else if (selectedGroup !== 'Tudo') {
             result = result.filter(c => (c.group || 'Outros') === selectedGroup);
         }
@@ -156,8 +174,7 @@ export function LancamentoModal({ isOpen, onClose, onSave, mercado, initialType 
 
     const handleSave = () => {
         if (!selectedCat) {
-            showToast('Escolha uma categoria. Selecionamos "Pendente" para você.', 'error');
-            setSelectedCat('pendente');
+            showToast('Escolha uma categoria para o gasto.', 'error');
             return;
         }
 
@@ -301,7 +318,7 @@ export function LancamentoModal({ isOpen, onClose, onSave, mercado, initialType 
                         </div>
 
                         {/* LISTA DE CATEGORIAS */}
-                        <div className="flex flex-col gap-1.5 max-h-60 overflow-y-auto p-1 custom-scrollbar pr-1 border-y border-slate-100 py-3">
+                        <div className="grid grid-cols-2 gap-1.5 p-1 border-y border-slate-100 py-3">
                             {displayedCategorias.map(cat => {
                                 const isSelected = selectedCat === cat.id;
 
@@ -329,18 +346,18 @@ export function LancamentoModal({ isOpen, onClose, onSave, mercado, initialType 
                                                 setShowCustomInput(cat.id === 'personalizado');
                                             }
                                         }}
-                                        className={`relative flex items-center justify-between px-4 py-3.5 rounded-xl transition-all border text-left ${
+                                        className={`relative flex items-center justify-between px-3 py-2.5 rounded-xl transition-all border text-left ${
                                             isSelected 
                                                 ? `${cat.color} border-transparent shadow-sm ring-1 ring-inset ring-current` 
                                                 : 'bg-white text-slate-600 border-transparent hover:bg-slate-50 hover:border-slate-200'
                                         } ${deleteMode && cat.id !== 'personalizado' && cat.id !== 'mercado' && cat.id !== 'receita_principal' ? 'animate-pulse border-rose-300 bg-rose-50' : ''}`}
                                         type="button"
                                     >
-                                        <div className="flex flex-col">
-                                            <span className="text-sm font-bold">{cat.label}</span>
-                                            <span className="text-[10px] opacity-60 font-black uppercase tracking-tight">{cat.group}</span>
+                                        <div className="flex items-center gap-2.5 min-w-0">
+                                            <span className={`w-2.5 h-2.5 rounded-full border flex-shrink-0 ${cat.color}`}></span>
+                                            <span className="text-sm font-bold truncate">{cat.label}</span>
                                         </div>
-                                        {isSelected && <Check size={18} strokeWidth={4} className="text-current" />}
+                                        {isSelected && <Check size={16} strokeWidth={4} className="text-current flex-shrink-0" />}
                                         
                                         {deleteMode && cat.id !== 'personalizado' && cat.id !== 'mercado' && cat.id !== 'receita_principal' && (
                                             <span className="absolute right-4 top-1/2 -translate-y-1/2 w-7 h-7 bg-rose-500 text-white rounded-full flex items-center justify-center shadow-lg border-2 border-white">
