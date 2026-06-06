@@ -1,3 +1,5 @@
+import { provisaoMetaData } from './constants';
+
 export function fmt(v: number | string | undefined | null): string {
     const val = typeof v === 'number' ? v : parseFloat((v || 0).toString());
     return val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -193,6 +195,40 @@ export function unfmt(v: number | string | undefined | null): number {
 
 export function round2(n: number): number {
     return Math.round(n * 100) / 100;
+}
+
+export function calcularSaldoReal(data: any): number {
+  if (!data) return 0;
+  const reservaIds = [9, 12, 32, 33, 34];
+  const isAporteReserva = (i: any) =>
+    provisaoMetaData.some((pm: any) => pm.entradaId === i.id) || reservaIds.includes(i.id);
+
+  const saldoAnterior = (data.receitas?.find((i: any) => i.id === 1 || i.id === '1')?.v) || 0;
+  const novasReceitas = round2((data.receitas || [])
+    .filter((i: any) => i.id !== 1 && i.id !== '1')
+    .reduce((a: number, c: any) => a + (c.v || 0), 0));
+  const resgates = round2(Object.keys(data.provisoes || {})
+    .reduce((a: number, k: string) =>
+      a + ((data.provisoes[k].gastos || []).reduce((s: number, g: any) => s + (g.v || 0), 0)), 0));
+  const totalMercadoReal = round2((data.mercado?.gastosReais || [])
+    .reduce((a: number, b: number) => a + (b || 0), 0));
+  const aportesManuais = round2(Object.keys(data.provisoes || {})
+    .reduce((a: number, k: string) => {
+      const ap = (data.provisoes[k] || {}).entradaManual || 0;
+      return a + (ap > 0 ? ap : 0);
+    }, 0));
+  const reservasPagas = round2([
+    ...(data.fixas || []).filter((i: any) => i.paid && provisaoMetaData.some((pm: any) => pm.entradaId === i.id)),
+    ...(data.variaveis || []).filter((i: any) => i.paid && isAporteReserva(i))
+  ].reduce((a: number, c: any) => a + (c.v || 0), 0) + aportesManuais);
+  const saidasReais = round2([
+    ...(data.fixas || []).filter((i: any) => !provisaoMetaData.some((pm: any) => pm.entradaId === i.id)),
+    ...(data.variaveis || []).filter((i: any) => !provisaoMetaData.some((pm: any) => pm.entradaId === i.id) && ![9,12,32,33,34,19].includes(i.id)),
+    ...(data.gastosMesHistorico || []).filter((i: any) => !i.isMercado),
+    ...(data.dividas || [])
+  ].filter((i: any) => i.paid).reduce((a: number, c: any) => a + (c.v || 0), 0) + totalMercadoReal);
+
+  return round2((saldoAnterior + novasReceitas + resgates) - saidasReais - reservasPagas);
 }
 
 export function maskMoney(v: string | number): string {

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Item, OrcamentoData } from '../types';
-import { fmt, unfmt, maskMoney, formatFullDate, MONTH_MAP, round2 } from '../utils';
+import { fmt, unfmt, maskMoney, formatFullDate, MONTH_MAP, round2, calcularSaldoReal } from '../utils';
 import { provisaoMetaData } from '../constants';
 import { PlusCircle, Pin, Shuffle, CircleCheck, Circle, Trash2, Wallet, Plus, Calendar, ChevronDown, ChevronUp, Tag, Check, X, ArrowUpCircle, ArrowDownCircle, CheckCircle2, TrendingUp } from 'lucide-react';
 import { CurrencyInput } from './CurrencyInput';
@@ -92,7 +92,7 @@ export function TabDetalhes({ data, setData, saveData, monthName = '', onAdd }: 
     const totalReservasPrev = round2(itemsReservaAll.reduce((acc, curr) => acc + curr.v, 0) + manualReserves.reduce((acc, curr) => acc + curr.v, 0));
     
     // Saldo Atual = (Saldo Anterior + Novas Entradas + Resgates) - Saidas - Reservas
-    const saldoLiquido = round2((saldoAnterior + totalReceitasNovasReal + resgatesReservaTotal) - totalSaidasPurasReal - totalReservasReal);
+    const saldoLiquido = calcularSaldoReal(data);
     const saldoPrevisto = round2((saldoAnterior + totalReceitasNovasPrev) - totalSaidasPurasPrev - totalReservasPrev);
 
     const handleAdd = (type: 'receitas' | 'fixas' | 'variaveis' | 'gastosMes' | 'dividas') => {

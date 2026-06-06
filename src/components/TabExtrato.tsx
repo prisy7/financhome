@@ -203,7 +203,7 @@ export function TabExtrato({ data, setData, saveData, monthName }: TabExtratoPro
         if (desc.includes('aluguel') || desc.includes('condominio') || desc.includes('iptu')) return 'Moradia';
         if (desc.includes('mercado pago')) return 'Banco/Pagamento';
         if (desc.includes('feira')) return 'Feira';
-        if (desc.includes('mercado') || desc.includes('supermercado')) return 'Mercado';
+        if (desc.includes('mercado') || desc.includes('supermercado') || item.isMercado) return 'Mercado';
         if (desc.includes('terreiro')) return 'Terreiro';
         if (desc.includes('escoteiro')) return 'Educação';
         if (desc.includes('pizza') || desc.includes('delivery') || desc.includes('ifood')) return 'Delivery';

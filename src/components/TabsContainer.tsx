@@ -5,19 +5,20 @@ interface TabsContainerProps {
     activeTab: string;
     setActiveTab: (tab: string) => void;
     children: React.ReactNode;
+    showTabsOnMobile?: boolean;
 }
 
-export function TabsContainer({ activeTab, setActiveTab, children }: TabsContainerProps) {
+export function TabsContainer({ activeTab, setActiveTab, children, showTabsOnMobile = false }: TabsContainerProps) {
     useEffect(() => {
         const checkMobile = () => {
-            if (window.innerWidth < 768 && activeTab !== 'detalhes') {
+            if (!showTabsOnMobile && window.innerWidth < 768 && activeTab !== 'detalhes') {
                 setActiveTab('detalhes');
             }
         };
         checkMobile();
         window.addEventListener('resize', checkMobile);
         return () => window.removeEventListener('resize', checkMobile);
-    }, [activeTab, setActiveTab]);
+    }, [activeTab, setActiveTab, showTabsOnMobile]);
 
     const tabs = [
         { id: 'detalhes', label: 'Orçamento', icon: <ListChecks size={16} className="mr-2" /> },
@@ -30,7 +31,7 @@ export function TabsContainer({ activeTab, setActiveTab, children }: TabsContain
 
     return (
         <div className="bg-transparent flex flex-col gap-3">
-            <div className="hidden md:flex p-0.5 bg-white rounded-xl overflow-x-auto scrollbar-hide border border-slate-100 shadow-sm gap-0.5">
+            <div className={`${showTabsOnMobile ? 'flex' : 'hidden md:flex'} p-0.5 bg-white rounded-xl overflow-x-auto scrollbar-hide border border-slate-100 shadow-sm gap-0.5`}>
                 {tabs.map((tab) => (
                     <button
                         key={tab.id}

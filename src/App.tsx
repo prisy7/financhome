@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { 
-  Wallet, Plus, Download, RotateCcw, LogIn, LogOut, ChevronDown, Cloud, RefreshCw, Bell, BellOff, Users, Trash2, CheckCircle, Calendar, Edit2
+  Wallet, Plus, Download, RotateCcw, LogIn, LogOut, ChevronDown, Cloud, RefreshCw, Bell, BellOff, Users, Trash2, CheckCircle, Calendar, Edit2, Save
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { defaultData, STORAGE_KEY_MONTHS } from './constants';
 import { OrcamentoData, MonthInfo } from './types';
-import { showToast, fmt, round2 } from './utils';
+import { showToast, fmt, round2, calcularSaldoReal } from './utils';
 import { TabsContainer } from './components/TabsContainer';
+import { MobileHome } from './components/MobileHome';
 import { TabDetalhes } from './components/TabDetalhes';
 import { TabCalendario } from './components/TabCalendario';
 import { TabExtrato } from './components/TabExtrato';
@@ -29,15 +30,15 @@ import { useExportData } from './hooks/useExportData';
 export default function App() {
   const [data, setData] = useState<OrcamentoData | null>(null);
   const [activeTab, setActiveTab] = useState<string>('detalhes');
+  const [mobileFullMode, setMobileFullMode] = useState(false);
   const [showNovoMesModal, setShowNovoMesModal] = useState(false);
   const [showLancamentoModal, setShowLancamentoModal] = useState(false);
   const [showCalendarioModal, setShowCalendarioModal] = useState(false);
-  const [lancamentoModalType, setLancamentoModalType] = useState<'gastos' | 'fixas' | 'variaveis'>('gastos');
+  const [lancamentoModalType, setLancamentoModalType] = useState<'gastos' | 'fixas' | 'variaveis' | 'mercado'>('gastos');
   const [showResetModal, setShowResetModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [showRenameModal, setShowRenameModal] = useState(false);
-  const [householdCode, setHouseholdCode] = useState(localStorage.getItem('orcamento_household_code') || '');
   const [novoMesInputs, setNovoMesInputs] = useState({ mes: 'Janeiro', ano: '2025' });
   const debounceTimeoutRef = useRef<any>(null);
   const [isSavingLocal, setIsSavingLocal] = useState(false);
@@ -241,7 +242,8 @@ export default function App() {
               paid: true, // Market expenses from modal are always paid
               vencimento: lancamento.vencimento,
               isMercado: true,
-              semana: lancamento.semana
+              semana: lancamento.semana,
+              categoria: lancamento.categoriaLabel || 'Mercado / Feira'
           });
       } else if (lancamento.tipo === 'gastosMes') {
           if (!newData.gastosMes) newData.gastosMes = [];
@@ -253,7 +255,8 @@ export default function App() {
               d: lancamento.descricao,
               v: lancamento.valor,
               paid: lancamento.pago,
-              vencimento: lancamento.vencimento
+              vencimento: lancamento.vencimento,
+              categoria: lancamento.categoriaLabel
           });
 
           // Sum in category
@@ -360,14 +363,7 @@ export default function App() {
       let initialData = JSON.parse(JSON.stringify(defaultData));
       // Carry over some data from previous month if it exists
       if (data) {
-          const totalReceitas = data.receitas.filter((i: any) => i.paid).reduce((acc: number, curr: any) => acc + curr.v, 0);
-          const totalSaidas = [
-              ...data.fixas.filter((i: any) => i.paid),
-              ...data.variaveis.filter((i: any) => i.paid),
-              ...(data.gastosMesHistorico || []).filter((i: any) => i.paid),
-              ...(data.dividas || []).filter((i: any) => i.paid)
-          ].reduce((acc: number, curr: any) => acc + curr.v, 0);
-          const saldoLiquido = round2(totalReceitas - totalSaidas);
+          const saldoLiquido = calcularSaldoReal(data);
 
           initialData = JSON.parse(JSON.stringify(data));
           
@@ -584,52 +580,33 @@ export default function App() {
             <div className="bg-white p-6 md:p-8 rounded-[2rem] shadow-2xl max-w-sm w-full border border-slate-100">
                 <div className="text-center mb-6">
                     <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                        <RefreshCw size={24} />
+                        <Save size={24} />
                     </div>
-                    <h3 className="text-lg font-black text-slate-800">Sincronização Familiar</h3>
+                    <h3 className="text-lg font-black text-slate-800">Backup dos Dados</h3>
                     <p className="text-xs text-slate-500 mt-2 leading-relaxed">
-                        Para compartilhar os dados entre dispositivos de pessoas diferentes, use o mesmo código abaixo em todos os aparelhos.
+                        Seus dados já sincronizam na nuvem pela sua conta Google. Use o backup
+                        abaixo como uma cópia de segurança extra que você guarda no seu aparelho.
                     </p>
                 </div>
-                
-                <div className="space-y-4 mb-8">
-                    <div>
-                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1 mb-1.5 block">Código da Família</label>
-                        <input 
-                            type="text" 
-                            placeholder="Ex: familiaLemos2025"
-                            value={householdCode}
-                            onChange={(e) => setHouseholdCode(e.target.value)}
-                            className="w-full h-12 bg-slate-50 border border-slate-200 rounded-xl px-4 font-bold text-slate-700 outline-none focus:border-blue-500 transition-all"
-                        />
-                    </div>
-                    
-                    <div className="p-4 bg-blue-50 rounded-2xl border border-blue-100/50">
-                        <p className="text-[10px] text-blue-700 leading-relaxed font-medium">
-                            <span className="font-black">DICA:</span> Deixe em branco para usar apenas o seu e-mail individual.
-                        </p>
-                    </div>
-                </div>
 
-                <div className="grid grid-cols-2 gap-3">
-                    <button 
-                        onClick={() => setShowSettingsModal(false)} 
-                        className="h-12 text-sm font-bold text-slate-500 bg-slate-100 rounded-xl hover:bg-slate-200 transition active:scale-95"
-                    >
-                        Cancelar
-                    </button>
-                    <button 
-                        onClick={() => {
-                            if (householdCode.trim()) {
-                                localStorage.setItem('orcamento_household_code', householdCode.trim());
-                            } else {
-                                localStorage.removeItem('orcamento_household_code');
-                            }
-                            window.location.reload(); // Recarrega para aplicar o novo grupo
-                        }} 
+                <div className="flex flex-col gap-3">
+                    <button
+                        onClick={downloadBackup}
                         className="h-12 text-sm font-extrabold text-white bg-blue-600 rounded-xl hover:bg-blue-700 transition shadow-lg shadow-blue-100 active:scale-95 uppercase tracking-wider"
                     >
-                        Salvar e Sincronizar
+                        Baixar Backup (.json)
+                    </button>
+
+                    <label className="h-12 flex items-center justify-center text-sm font-bold text-blue-600 bg-blue-50 rounded-xl hover:bg-blue-100 transition active:scale-95 cursor-pointer">
+                        Restaurar Backup
+                        <input type="file" accept=".json,application/json" className="hidden" onChange={uploadBackup} />
+                    </label>
+
+                    <button
+                        onClick={() => setShowSettingsModal(false)}
+                        className="h-12 text-sm font-bold text-slate-500 bg-slate-100 rounded-xl hover:bg-slate-200 transition active:scale-95"
+                    >
+                        Fechar
                     </button>
                 </div>
             </div>
@@ -843,20 +820,10 @@ export default function App() {
 
                         <button 
                         onClick={() => setShowSettingsModal(true)}
-                        className={`relative w-8 h-8 md:w-10 md:h-10 flex items-center justify-center rounded-xl md:rounded-2xl transition border ${
-                            householdCode 
-                            ? 'text-blue-600 bg-blue-50 border-blue-200 ring-2 ring-blue-100/50' 
-                            : 'text-slate-400 bg-slate-50 border-slate-100 hover:border-blue-200'
-                        }`}
-                        title="Configurações de Sincronização Familiar"
+                        className="w-8 h-8 md:w-10 md:h-10 flex items-center justify-center text-slate-400 hover:text-blue-500 bg-slate-50 rounded-xl md:rounded-2xl transition border border-slate-100"
+                        title="Backup dos Dados"
                         >
-                            <Users size={16} />
-                            {householdCode && (
-                            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-blue-600 border-2 border-white rounded-full"></span>
-                            )}
-                            {(!householdCode || !user) && (
-                            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-rose-500 border-2 border-white rounded-full animate-pulse"></span>
-                            )}
+                            <Save size={16} />
                         </button>
                     </div>
                 </div>
@@ -866,7 +833,26 @@ export default function App() {
         </header>
 
           <main className="flex-grow p-4 sm:p-5 lg:p-10 pt-20 md:pt-10 max-w-[1550px] mx-auto w-full space-y-4">
-            <TabsContainer activeTab={activeTab} setActiveTab={setActiveTab}>
+            {isMobile && !mobileFullMode ? (
+              <MobileHome
+                data={data}
+                monthName={availableMonths.find(m => m.id === currentMonthId)?.name || ''}
+                onLancar={() => { setLancamentoModalType('gastos'); setShowLancamentoModal(true); }}
+                onModoCompleto={() => { setActiveTab('detalhes'); setMobileFullMode(true); }}
+                setData={setData}
+                saveData={saveData}
+              />
+            ) : (
+            <>
+            {isMobile && mobileFullMode && (
+              <button
+                onClick={() => setMobileFullMode(false)}
+                className="flex items-center gap-2 text-[11px] font-black text-slate-500 bg-white border border-slate-200 rounded-xl px-4 h-10 hover:bg-slate-50 transition active:scale-95 uppercase tracking-widest"
+              >
+                ← Início
+              </button>
+            )}
+            <TabsContainer activeTab={activeTab} setActiveTab={setActiveTab} showTabsOnMobile={isMobile && mobileFullMode}>
                 {activeTab === 'detalhes' && (
                     <TabDetalhes 
                     data={data} 
@@ -894,7 +880,7 @@ export default function App() {
                         saveData={saveData} 
                         monthName={availableMonths.find(m => m.id === currentMonthId)?.name || ''} 
                         onAdd={() => {
-                            setLancamentoModalType('gastos');
+                            setLancamentoModalType('mercado');
                             setShowLancamentoModal(true);
                         }}
                     />
@@ -903,6 +889,8 @@ export default function App() {
                 {activeTab === 'dividas' && <TabDividas data={data} setData={setData} saveData={saveData} />}
                 {activeTab === 'evolucao' && <TabEvolucao availableMonths={availableMonths} />}
             </TabsContainer>
+            </>
+            )}
           </main>
 
           <footer className="bg-white border-t border-slate-200 py-6 mt-8">

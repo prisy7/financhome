@@ -1,6 +1,6 @@
 import * as XLSX from 'xlsx';
 import { OrcamentoData } from '../types';
-import { showToast } from '../utils';
+import { showToast, calcularSaldoReal } from '../utils';
 
 export function useExportData() {
     const exportData = (data: OrcamentoData | null, currentMonthName: string) => {
@@ -34,7 +34,7 @@ export function useExportData() {
             { Item: 'Total Receitas (Confirmado)', Valor: totalReceitasReal },
             { Item: 'Total Despesas (Pagos)', Valor: totalSaidasReal },
             { Item: 'Total Resgates de Reserva', Valor: resgatesReserva },
-            { Item: 'Saldo Final Real', Valor: (totalReceitasReal + resgatesReserva) - totalSaidasReal },
+            { Item: 'Saldo Final Real', Valor: calcularSaldoReal(data) },
             { Item: '---', Valor: '---' },
             { Item: 'Meta Mercado (Semanal)', Valor: data.mercado.metaSemanal },
             { Item: 'Total Gasto Mercado', Valor: data.mercado.gastosReais.reduce((a, b) => a + (b || 0), 0) }

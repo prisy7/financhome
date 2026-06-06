@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { unfmt, formatFullDate } from './utils';
+import { unfmt, formatFullDate, calcularSaldoReal } from './utils';
 
 describe('unfmt (Currency Parser)', () => {
     it('returns 0 for falsy values', () => {
@@ -48,7 +48,30 @@ describe('formatFullDate', () => {
     });
 
     it('handles undefined values', () => {
-        expect(formatFullDate(undefined, 10)).toBe('Dia 10');
+        expect(formatFullDate(undefined, 10)).toMatch(/^10\/\d{2}$/);
         expect(formatFullDate('janeiro', null)).toBe('-');
+    });
+});
+
+describe('calcularSaldoReal', () => {
+    it('calcula o saldo corretamente com entradas, despesas e gastos reais', () => {
+        const mockData = {
+            receitas: [
+                { id: 1, v: 1000, paid: true }, 
+                { id: 2, v: 500, paid: true }, 
+            ],
+            fixas: [
+                { id: 101, v: 200, paid: true } 
+            ],
+            variaveis: [],
+            gastosMesHistorico: [],
+            dividas: [],
+            provisoes: {},
+            mercado: {
+                gastosReais: [50, 0, 0, 0] 
+            }
+        };
+
+        expect(calcularSaldoReal(mockData)).toBe(1250);
     });
 });

@@ -229,7 +229,7 @@ export function TabProvisoes({ data, setData, saveData }: TabProvisoesProps) {
 
                     const list = typeList === 'variaveis' ? data.variaveis : data.fixas;
                     const entradaItem = list.find(f => f.id === entradaId);
-                    const entrada = entradaItem ? entradaItem.v : ((prov as any).entradaManual || 0);
+                    const entrada = entradaItem ? (entradaItem.paid ? entradaItem.v : 0) : ((prov as any).entradaManual || 0);
                     
                     const saldoIni = prov.saldoInicial || 0;
                     const gastosArray = prov.gastos || [];
@@ -382,10 +382,10 @@ export function TabProvisoes({ data, setData, saveData }: TabProvisoesProps) {
                                             <div className="bg-white rounded-[2rem] border border-slate-100 p-8 flex flex-col items-center justify-center text-center shadow-sm">
                                                 <div className="w-20 h-20 bg-indigo-50 rounded-full flex items-center justify-center mb-4 relative">
                                                     <Target size={32} className="text-indigo-500" />
-                                                    <div className="absolute inset-0 rounded-full border-4 border-indigo-100 border-t-indigo-500 animate-[spin_3s_linear_infinite]" style={{ clipPath: `conic-gradient(from 0deg, transparent 0%, transparent ${100 - Math.min(100, (saldoFinal/objetivo)*100)}%, #6366f1 0%)` }}></div>
+                                                    <div className="absolute inset-0 rounded-full border-4 border-indigo-100 border-t-indigo-500 animate-[spin_3s_linear_infinite]" style={{ clipPath: `conic-gradient(from 0deg, transparent 0%, transparent ${100 - percent}%, #6366f1 0%)` }}></div>
                                                 </div>
                                                 <h3 className="text-xl font-black text-slate-800 uppercase tracking-tight mb-2">
-                                                    {objetivo > 0 ? `${Math.min(100, (saldoFinal / objetivo) * 100).toFixed(1)}% Completo` : 'Defina uma Meta'}
+                                                    {objetivo > 0 ? `${percent.toFixed(1)}% Completo` : 'Defina uma Meta'}
                                                 </h3>
                                                 <p className="text-xs font-bold text-slate-400 uppercase tracking-widest leading-relaxed max-w-[200px]">
                                                     Você está acumulando para atingir <span className="text-indigo-600 font-extrabold">{fmt(objetivo)}</span> em <span className="text-indigo-600 font-extrabold">{prov.dataFinal || '--'}</span>.
@@ -474,7 +474,7 @@ export function TabProvisoes({ data, setData, saveData }: TabProvisoesProps) {
                             
                             const list = typeList === 'variaveis' ? data.variaveis : data.fixas;
                             const entradaItem = list.find(f => f.id === entradaId);
-                            const entrada = entradaItem ? entradaItem.v : ((prov as any).entradaManual || 0);
+                            const entrada = entradaItem ? (entradaItem.paid ? entradaItem.v : 0) : ((prov as any).entradaManual || 0);
                             
                             const saldoIni = prov.saldoInicial || 0;
                             const gastos = prov.gastos || [];

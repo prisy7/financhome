@@ -1,6 +1,6 @@
 import React from 'react';
 import { MonthInfo } from '../types';
-import { fmt } from '../utils';
+import { fmt, calcularSaldoReal } from '../utils';
 import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { TrendingUp, Wallet } from 'lucide-react';
 
@@ -15,6 +15,7 @@ export function TabEvolucao({ availableMonths }: TabEvolucaoProps) {
     const chartData = sortedMonths.map(m => {
         let receitas = 0;
         let despesas = 0;
+        let saldo = 0;
         try {
             const raw = localStorage.getItem('orcamento_data_' + m.id);
             if (raw) {
@@ -26,6 +27,7 @@ export function TabEvolucao({ availableMonths }: TabEvolucaoProps) {
                     ...(md.gastosMesHistorico || []).filter((i:any)=>i.paid),
                     ...(md.dividas || []).filter((i:any)=>i.paid)
                 ].reduce((acc:number,curr:any)=>acc+curr.v, 0);
+                saldo = calcularSaldoReal(md);
             }
         } catch (e) {}
 
@@ -33,7 +35,7 @@ export function TabEvolucao({ availableMonths }: TabEvolucaoProps) {
             name: m.name,
             receitas,
             despesas,
-            saldo: receitas - despesas,
+            saldo,
             taxa: receitas > 0 ? Number(((despesas / receitas) * 100).toFixed(1)) : 0
         };
     });
